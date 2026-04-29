@@ -17,8 +17,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Sans+TC:wght@300;400;500;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -77,7 +75,7 @@
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
         }
 
-         (min-width: 431px) {
+        @media (min-width: 431px) {
             body, #app-wrapper { background-color: #e2e8f0; }
             #app { height: 90vh; min-height: 90vh; max-height: 932px; border-radius: 24px; top: 5vh; }
         }
@@ -97,7 +95,6 @@
         }
 
         .trip-card { background: white; border-radius: 20px; padding: 16px; display: flex; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 12px; }
-        .drag-handle { cursor: grab; color: #cbd5e1; display: flex; align-items: center; padding: 0 4px; }
         .drive-time { display: flex; align-items: center; gap: 8px; padding-left: 36px; margin: -4px 0 8px 0; color: var(--primary-blue); font-size: 12px; font-weight: 600; }
         .drive-time::before { content: ''; width: 2px; height: 18px; background: repeating-linear-gradient(to bottom, var(--primary-blue) 0, var(--primary-blue) 4px, transparent 4px, transparent 8px); }
         .drive-input { background: transparent; border: none; border-bottom: 1px dashed #bae6fd; color: var(--primary-blue); font-size: 12px; font-weight: 600; outline: none; flex: 1; min-width: 0; padding: 2px 4px; }
@@ -197,41 +194,31 @@
                     </div>
                 </div>
 
-                <draggable v-model="currentEvents" item-key="id" handle=".drag-handle" :animation="200">
-                    <template #item="{ element: event, index: idx }">
-                        <div>
-                            <div class="trip-card relative group">
-                                <div class="drag-handle p-1"><i class="fa-solid fa-grip-vertical"></i></div>
-                                
-                                <div class="flex-grow min-w-0 py-1">
-                                    <div class="flex justify-between items-start mb-1">
-                                        <span class="text-sm font-bold text-sky-600 font-mono">{{ event.time }}</span>
-                                        <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600">{{ event.type }}</span>
-                                    </div>
-                                    <h3 class="font-bold text-slate-800 text-base mb-1 truncate">{{ event.location }}</h3>
-                                    <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">{{ event.note }}</p>
-                                </div>
-                                <div class="flex flex-col justify-between items-end gap-2">
-                                    <div class="flex gap-2">
-                                        <button @click="openEditModal(idx)" class="text-slate-300 hover:text-sky-500 transition p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                                        <button @click="deleteEvent(idx)" class="text-slate-300 hover:text-red-500 transition p-1"><i class="fa-solid fa-trash-can"></i></button>
-                                    </div>
-                                    <button @click="openMap(event.location)" class="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:text-sky-500 hover:bg-sky-50 flex items-center justify-center transition mt-1">
-                                        <i class="fa-solid fa-location-arrow"></i>
-                                    </button>
-                                </div>
+                <div v-for="(event, idx) in currentEvents" :key="event.id || idx">
+                    <div class="trip-card relative group">
+                        <div class="flex-grow min-w-0 py-1">
+                            <div class="flex justify-between items-start mb-1 gap-2">
+                                <span class="text-sm font-bold text-sky-600 font-mono whitespace-nowrap">{{ event.time }}</span>
+                                <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 flex-shrink-0">{{ event.type }}</span>
                             </div>
-                            <div v-if="idx < currentEvents.length - 1" class="drive-time">
-                                <i class="fa-solid fa-car-side"></i> 
-                                <input v-model="event.driveTime" placeholder="點此輸入車程..." class="drive-input">
-                            </div>
+                            <h3 class="font-bold text-slate-800 text-base mb-1">{{ event.location }}</h3>
+                            <p class="text-xs text-slate-500 leading-relaxed whitespace-pre-line break-words">{{ event.note }}</p>
                         </div>
-                    </template>
-                </draggable>
-                
-                <button @click="openAddModal" class="w-full mt-4 py-4 border-2 border-dashed border-sky-200 text-sky-500 rounded-xl font-bold text-sm hover:bg-sky-50 transition">
-                    <i class="fa-solid fa-plus mr-1"></i> 新增行程點
-                </button>
+                        <div class="flex flex-col justify-between items-end gap-2">
+                            <div class="flex gap-2">
+                                <button @click="openEditModal(idx)" class="text-slate-300 hover:text-sky-500 transition p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button @click="deleteEvent(idx)" class="text-slate-300 hover:text-red-500 transition p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <button @click="openMap(event.location)" class="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:text-sky-500 hover:bg-sky-50 flex items-center justify-center transition mt-1">
+                                <i class="fa-solid fa-location-arrow"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div v-if="idx < currentEvents.length - 1" class="drive-time">
+                        <i class="fa-solid fa-car-side"></i> 
+                        <input v-model="event.driveTime" placeholder="點此輸入車程..." class="drive-input">
+                    </div>
+                </div>
             </div>
 
             <div v-else-if="tab === 'accounting'" key="acc" class="space-y-4">
@@ -383,7 +370,7 @@
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
             <div class="modal-content">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-lg">{{ editingIdx === -1 ? '新增行程點' : '編輯詳細行程' }}</h3>
+                    <h3 class="font-bold text-lg">編輯詳細行程</h3>
                     <button @click="closeModal" class="p-2"><i class="fa-solid fa-xmark text-xl text-slate-300"></i></button>
                 </div>
                 <div class="space-y-4">
@@ -455,17 +442,15 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.10-pwa-safearea'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.13-full-notes-no-add'; // 更新版本以載入新版行程
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
-
-    const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
-    const hasDraggable = typeof window !== 'undefined' && window.vuedraggable;
-    const SafeDraggable = hasDraggable ? window.vuedraggable : DraggableFallback;
 
     createApp({
         setup() {
             const storedVersion = localStorage.getItem('app_version');
             if (storedVersion !== APP_VERSION) {
+                // 僅更新行程資料，保留記帳、購物與行李清單
+                localStorage.removeItem('oki_v26_itin');
                 localStorage.setItem('app_version', APP_VERSION);
             }
 
@@ -494,12 +479,331 @@
             const expenses = ref(getSaved('exp', []));
 
             const itinerary = ref(getSaved('itin', [
-                { date: '5/16 (六)', title: 'Day 1', desc: '煙火開場與北上移動', events: [ { id: 101, time: '14:40', type: '航班', location: '那霸機場 (OKA)', note: '抵達那霸機場。', driveTime: '' }, { id: 102, time: '15:30 - 16:30', type: '交通', location: 'OTS 臨空豐崎租車', note: '辦理租車與取車。', driveTime: '5 分鐘' }, { id: 103, time: '16:35 - 17:50', type: '購物', location: 'iias 沖繩豐崎', note: '快速晚餐、採買第一晚備品。【停留：1小時15分】', driveTime: '55 分鐘 (預留週末塞車緩衝)' }, { id: 104, time: '19:00', type: '景點', location: '美國村', note: '找車位並步行至海濱。', driveTime: '' }, { id: 105, time: '20:00 - 20:05', type: '景點', location: '美國村煙火秀', note: '每週六固定施放。', driveTime: '40 分鐘' }, { id: 106, time: '21:10', type: '住宿', location: '星野集團 BEB5 沖繩瀨良垣', note: '入住星野集團 BEB5 沖繩瀨良垣。', driveTime: '' } ] },
-                { date: '5/17 (日)', title: 'Day 2', desc: '美麗海水族館與本部燒肉', events: [ { id: 201, time: '08:30', type: '交通', location: '離開飯店', note: '星野集團 BEB5 沖繩瀨良垣', driveTime: '10 分鐘' }, { id: 202, time: '08:40 - 09:15', type: '美食', location: 'Camel (三明治店)', note: '9點前抵達外帶玉子燒三明治。【停留：35分】', driveTime: '50 分鐘' }, { id: 203, time: '10:05 - 11:05', type: '景點', location: '古宇利島', note: '跨海大橋拍照、島上散步。【停留：1小時】', driveTime: '5 分鐘' }, { id: 204, time: '11:10 - 12:10', type: '美食', location: '古宇利島 蝦蝦飯', note: '建議外帶或快速內用。【停留：1小時】', driveTime: '35 分鐘' }, { id: 205, time: '12:45', type: '景點', location: '美麗海水族館 (P7停車場)', note: '抵達 美麗海水族館 (P7停車場)。', driveTime: '' }, { id: 206, time: '13:00', type: '景點', location: '海豚表演', note: '戶外劇場，長輩可坐著觀賞。', driveTime: '' }, { id: 207, time: '15:00', type: '景點', location: '鯨鯊餵食秀', note: '黑潮之海大水槽，單飛成員在此會合。', driveTime: '' }, { id: 208, time: '15:30 - 17:15', type: '購物', location: '美麗海水族館', note: '館內參觀與伴手禮採購。【停留：4.5小時】', driveTime: '15 分鐘' }, { id: 209, time: '17:40', type: '美食', location: '燒肉本部牧場 (本部總店)', note: '晚餐：燒肉本部牧場 (本部總店) ★ 已預約。', driveTime: '50 分鐘' }, { id: 210, time: '20:00', type: '住宿', location: '返回飯店', note: '返回 BEB5 飯店。', driveTime: '' } ] },
-                { date: '5/18 (一)', title: 'Day 3', desc: '鳳梨園與童裝大採購', events: [ { id: 301, time: '08:30', type: '美食', location: '飯店早餐', note: '飯店早餐。', driveTime: '' }, { id: 302, time: '10:00 - 11:30', type: '景點', location: '名護鳳梨園', note: '搭乘鳳梨車遊園，長輩免走路。【停留：1.5小時】', driveTime: '25 分鐘' }, { id: 303, time: '12:00 - 12:40', type: '景點', location: '萬座毛', note: '看象鼻岩拍照。【停留：40分】', driveTime: '15 分鐘' }, { id: 304, time: '12:50 - 14:20', type: '美食', location: '恩納之驛 休憩市場', note: '午餐小吃 (必吃海膽醬扇貝)。【停留：1.5小時】', driveTime: '25 分鐘' }, { id: 305, time: '14:50 - 16:00', type: '景點', location: '美國村 (日間場)', note: '補拍白天美照、逛設計小店。【停留：1小時10分】', driveTime: '15 分鐘' }, { id: 306, time: '16:30 - 18:00', type: '購物', location: 'Birthday 港川店', note: '幼童服飾與用品大採購。【停留：1.5小時】', driveTime: '10 分鐘' }, { id: 307, time: '18:15', type: '住宿', location: '阿拉科喬飯店 (Ala COOJU)', note: '入住 阿拉科喬飯店 (Ala COOJU)。', driveTime: '' }, { id: 308, time: '19:00', type: '美食', location: '濱壽司 (Hamasushi)', note: '晚餐：濱壽司 (Hamasushi)：幼童友善餐廳。', driveTime: '' } ] },
-                { date: '5/19 (二)', title: 'Day 4', desc: '國際通與購物中心大採購', events: [ { id: 401, time: '08:30', type: '美食', location: 'Ala COOJU 飯店', note: 'Ala COOJU 飯店海景早餐。', driveTime: '' }, { id: 402, time: '09:40 - 10:30', type: '購物', location: '沖繩媳婦 (Akebono店)', note: '選物店採購。【停留：50分】', driveTime: '10 分鐘' }, { id: 403, time: '10:40 - 11:50', type: '景點', location: '波上宮', note: '神社參拜與懸崖海景拍照。【停留：1小時10分】', driveTime: '10 分鐘' }, { id: 404, time: '12:00 - 14:30', type: '購物', location: '國際通 & 商店街 (市場本通)', note: '午餐、逛雪鹽與伴手禮。【停留：2.5小時】', driveTime: '15 分鐘' }, { id: 405, time: '15:00 - 18:30', type: '購物', location: 'SAN-A PARCO CITY', note: '【停留 3.5hr】🛍️ 重點：MARKEY’S 童裝、札幌藥妝、大型超市。', driveTime: '' }, { id: 406, time: '18:30', type: '美食', location: 'PARCO CITY 內餐廳', note: '晚餐：PARCO CITY 內餐廳 (如：敘敘苑燒肉或美食街)。', driveTime: '' } ] },
-                { date: '5/20 (三)', title: 'Day 5', desc: '瀨長島景觀與返程', events: [ { id: 501, time: '09:00', type: '交通', location: '單飛成員出發', note: '單飛成員單獨出發：預約計程車赴機場 (CI121 11:55起飛)。', driveTime: '' }, { id: 502, time: '10:20 - 12:30', type: '景點', location: '瀨長島 Umikaji Terrace', note: '拍照看飛機、幸福鬆餅。【停留：2小時】', driveTime: '10 分鐘' }, { id: 503, time: '13:00 - 13:40', type: '交通', location: 'OTS 臨空豐崎還車', note: 'OTS 臨空豐崎還車 (記得加滿油)。', driveTime: '' }, { id: 504, time: '13:50', type: '航班', location: '機場櫃檯報到', note: '機場櫃檯報到 (JX0871 15:50 起飛)。', driveTime: '' } ] }
-            ]));
+                {
+                                "date": "5/16 (六)",
+                                "title": "Day 1",
+                                "desc": "煙火序幕與北上移動",
+                                "events": [
+                                                {
+                                                                "id": 101,
+                                                                "time": "14:40",
+                                                                "type": "航班",
+                                                                "location": "抵達那霸機場",
+                                                                "note": "大部隊搭乘星宇 JX0870 抵達沖繩。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 102,
+                                                                "time": "15:30 - 16:30",
+                                                                "type": "交通",
+                                                                "location": "OTS 臨空豐崎租車",
+                                                                "note": "辦理手續、安頓 10 人行李與安全座椅。",
+                                                                "driveTime": "開車約 5 分鐘"
+                                                },
+                                                {
+                                                                "id": 103,
+                                                                "time": "16:35 - 17:50",
+                                                                "type": "美食",
+                                                                "location": "iias 沖繩豐崎",
+                                                                "note": "晚餐建議：1樓美食街 A&W 漢堡（沖繩限定）、Ishigufu 沖繩麵（烤炙阿古豬）、Kijimuna 塔可飯（特色歐姆蛋口感）。",
+                                                                "driveTime": "開車約 55 分鐘（週末車多預留緩衝）"
+                                                },
+                                                {
+                                                                "id": 104,
+                                                                "time": "19:00",
+                                                                "type": "景點",
+                                                                "location": "美國村",
+                                                                "note": "停車建議：北谷町營停車場 或 AEON 北谷店。備註：週六晚上美國村有固定煙火秀，人潮與車潮會達到巔峰。路邊或巷弄停車位極難找，直接停外圍大停車場雖然多走幾步，但可避免全家塞在狹窄巷弄內空轉。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 105,
+                                                                "time": "20:00 - 20:05",
+                                                                "type": "景點",
+                                                                "location": "美國村煙火秀",
+                                                                "note": "步行至海濱觀賞，每週六固定施放。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 106,
+                                                                "time": "20:30 - 21:10",
+                                                                "type": "交通",
+                                                                "location": "啟程前往恩納村飯店",
+                                                                "note": "從美國村出發前往星野集團 BEB5 沖繩瀨良垣。",
+                                                                "driveTime": "開車約 40 分鐘"
+                                                },
+                                                {
+                                                                "id": 107,
+                                                                "time": "21:10",
+                                                                "type": "住宿",
+                                                                "location": "星野集團 BEB5 沖繩瀨良垣",
+                                                                "note": "辦理入住。",
+                                                                "driveTime": ""
+                                                }
+                                ]
+                },
+                {
+                                "date": "5/17 (日)",
+                                "title": "Day 2",
+                                "desc": "美麗海水族館與本部燒肉",
+                                "events": [
+                                                {
+                                                                "id": 201,
+                                                                "time": "08:30",
+                                                                "type": "交通",
+                                                                "location": "離開飯店",
+                                                                "note": "從星野集團 BEB5 沖繩瀨良垣出發。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 202,
+                                                                "time": "08:40 - 09:15",
+                                                                "type": "美食",
+                                                                "location": "Camel（三明治店）",
+                                                                "note": "「9 點前到」確保買到現做玉子燒三明治。",
+                                                                "driveTime": "開車約 50 分鐘"
+                                                },
+                                                {
+                                                                "id": 203,
+                                                                "time": "10:05 - 11:05",
+                                                                "type": "景點",
+                                                                "location": "古宇利島",
+                                                                "note": "過跨海大橋拍照、心形岩散步。",
+                                                                "driveTime": "開車約 5 分鐘"
+                                                },
+                                                {
+                                                                "id": 204,
+                                                                "time": "11:10 - 12:10",
+                                                                "type": "美食",
+                                                                "location": "古宇利島 蝦蝦飯",
+                                                                "note": "建議外帶或快速內用。",
+                                                                "driveTime": "開車約 35 分鐘"
+                                                },
+                                                {
+                                                                "id": 205,
+                                                                "time": "12:45",
+                                                                "type": "景點",
+                                                                "location": "美麗海水族館",
+                                                                "note": "抵達美麗海水族館，停 P7 停車場。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 206,
+                                                                "time": "13:00",
+                                                                "type": "景點",
+                                                                "location": "海豚表演",
+                                                                "note": "戶外劇場，長輩可坐著休息觀賞。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 207,
+                                                                "time": "15:00",
+                                                                "type": "景點",
+                                                                "location": "鯨鯊餵食秀",
+                                                                "note": "單飛成員 10:45 到，此時於館內會合。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 208,
+                                                                "time": "15:30 - 17:15",
+                                                                "type": "購物",
+                                                                "location": "美麗海水族館館內參觀",
+                                                                "note": "吹冷氣、看鯨鯊、逛伴手禮區。",
+                                                                "driveTime": "開車約 15 分鐘"
+                                                },
+                                                {
+                                                                "id": 209,
+                                                                "time": "17:40",
+                                                                "type": "美食",
+                                                                "location": "燒肉本部牧場（本部總店）",
+                                                                "note": "晚餐，★ 已預約。",
+                                                                "driveTime": "開車約 50 分鐘"
+                                                },
+                                                {
+                                                                "id": 210,
+                                                                "time": "20:00",
+                                                                "type": "住宿",
+                                                                "location": "返回星野集團 BEB5 沖繩瀨良垣",
+                                                                "note": "返回飯店休息。",
+                                                                "driveTime": ""
+                                                }
+                                ]
+                },
+                {
+                                "date": "5/18 (一)",
+                                "title": "Day 3",
+                                "desc": "鳳梨園、阿古豬與童裝採購",
+                                "events": [
+                                                {
+                                                                "id": 301,
+                                                                "time": "08:30 - 09:30",
+                                                                "type": "美食",
+                                                                "location": "飯店悠閒早餐",
+                                                                "note": "在飯店慢慢用早餐，預留長輩與小孩整理時間。",
+                                                                "driveTime": "開車約 25 分鐘"
+                                                },
+                                                {
+                                                                "id": 302,
+                                                                "time": "09:55 - 11:20",
+                                                                "type": "景點",
+                                                                "location": "名護鳳梨園",
+                                                                "note": "搭乘自動駕駛鳳梨車，長輩與幼童首選。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 303,
+                                                                "time": "11:30 - 13:00",
+                                                                "type": "美食",
+                                                                "location": "百年古家 大家（Ufuya）",
+                                                                "note": "午餐：吃阿古豬火鍋，需預約。",
+                                                                "driveTime": "開車約 30 分鐘"
+                                                },
+                                                {
+                                                                "id": 304,
+                                                                "time": "13:30 - 14:15",
+                                                                "type": "景點",
+                                                                "location": "萬座毛",
+                                                                "note": "看象鼻岩，全平坦步道，長輩極友善。",
+                                                                "driveTime": "開車約 15 分鐘"
+                                                },
+                                                {
+                                                                "id": 305,
+                                                                "time": "14:30 - 15:30",
+                                                                "type": "美食",
+                                                                "location": "恩納之驛 休憩市場",
+                                                                "note": "吃海膽醬烤扇貝、琉冰。比起二訪美國村更推薦此處。",
+                                                                "driveTime": "開車約 25 分鐘"
+                                                },
+                                                {
+                                                                "id": 306,
+                                                                "time": "15:55 - 17:30",
+                                                                "type": "購物",
+                                                                "location": "Birthday 港川店",
+                                                                "note": "幼童用品補貨，離今晚飯店僅 10 分鐘。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 307,
+                                                                "time": "17:40",
+                                                                "type": "住宿",
+                                                                "location": "沖繩阿拉科喬飯店 Ala COOJU OKINAWA",
+                                                                "note": "辦理入住。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 308,
+                                                                "time": "19:00",
+                                                                "type": "美食",
+                                                                "location": "晚餐建議（二選一）",
+                                                                "note": "1. Steak House 88 Jr.（浦添店）：平價高 CP 值牛排。2. Hama 壽司（Hamasushi）：小孩最愛的迴轉壽司，點餐系統有趣。",
+                                                                "driveTime": ""
+                                                }
+                                ]
+                },
+                {
+                                "date": "5/19 (二)",
+                                "title": "Day 4",
+                                "desc": "媳婦選物、國際通與百貨主戰場",
+                                "events": [
+                                                {
+                                                                "id": 401,
+                                                                "time": "08:30 - 09:30",
+                                                                "type": "美食",
+                                                                "location": "飯店海景早餐",
+                                                                "note": "在 Ala COOJU 享用海景早餐。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 402,
+                                                                "time": "09:40 - 10:30",
+                                                                "type": "購物",
+                                                                "location": "沖繩媳婦（曙店）",
+                                                                "note": "選物店採買，週二有營業。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 403,
+                                                                "time": "10:40 - 11:50",
+                                                                "type": "景點",
+                                                                "location": "波上宮",
+                                                                "note": "神社參拜與懸崖海景拍照。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 404,
+                                                                "time": "12:00 - 14:30",
+                                                                "type": "購物",
+                                                                "location": "國際通 & 商店街",
+                                                                "note": "停車建議：D-Parking 第六 或 D-Parking 牧志市場。備註：這兩個停車場位於國際通中後段，距離第一牧志公設市場與有頂棚的平和通入口最近，長輩與小孩可快速進入遮陽避雨的商店街區，減少烈日下走路時間。",
+                                                                "driveTime": "開車約 15 分鐘"
+                                                },
+                                                {
+                                                                "id": 405,
+                                                                "time": "14:45 - 18:30",
+                                                                "type": "購物",
+                                                                "location": "SAN-A PARCO CITY",
+                                                                "note": "全家人最後衝刺大採購。重點：MARKEY'S 童裝、札幌藥妝、大型 3 樓超市。長輩策略：安排在 2F/3F 海景休息區休息，大人分頭大採購。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 406,
+                                                                "time": "18:30",
+                                                                "type": "美食",
+                                                                "location": "百貨內餐廳",
+                                                                "note": "晚餐：百貨內餐廳享用，如敘敘苑燒肉或美食街。",
+                                                                "driveTime": ""
+                                                }
+                                ]
+                },
+                {
+                                "date": "5/20 (三)",
+                                "title": "Day 5",
+                                "desc": "瀨長島飛機景觀與機場賦歸",
+                                "events": [
+                                                {
+                                                                "id": 501,
+                                                                "time": "09:00",
+                                                                "type": "交通",
+                                                                "location": "單飛成員先行出發",
+                                                                "note": "預約計程車赴機場，CI121 11:55 起飛。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 502,
+                                                                "time": "09:30 - 10:00",
+                                                                "type": "住宿",
+                                                                "location": "大部隊辦理退房",
+                                                                "note": "悠閒退房，整理行李與小孩用品。",
+                                                                "driveTime": "開車約 25 分鐘"
+                                                },
+                                                {
+                                                                "id": 503,
+                                                                "time": "10:25 - 12:30",
+                                                                "type": "景點",
+                                                                "location": "瀨長島 Umikaji Terrace",
+                                                                "note": "拍照、看飛機、吃幸福鬆餅，務必 14 天前預約。",
+                                                                "driveTime": "開車約 10 分鐘"
+                                                },
+                                                {
+                                                                "id": 504,
+                                                                "time": "13:00 - 13:40",
+                                                                "type": "交通",
+                                                                "location": "OTS 臨空豐崎還車",
+                                                                "note": "加滿油並檢查車輛。",
+                                                                "driveTime": ""
+                                                },
+                                                {
+                                                                "id": 505,
+                                                                "time": "13:50",
+                                                                "type": "航班",
+                                                                "location": "抵達機場辦理報到",
+                                                                "note": "JX0871 15:50 起飛。",
+                                                                "driveTime": ""
+                                                }
+                                ]
+                }
+]
+            ));
 
             const currentEvents = computed({
                 get() { return itinerary.value[activeDay.value]?.events || []; },
@@ -529,6 +833,7 @@
                 }, 0);
             };
             const formatNum = (n) => (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
             
             const resetApp = () => {
                 if (confirm('確定要清除所有資料並載入最新版嗎？')) {
@@ -554,7 +859,6 @@
             const deleteExp = (id) => expenses.value = expenses.value.filter(e => e.id !== id);
             
             const openEditModal = (idx) => { modalMode.value = 'edit'; editingIdx.value = idx; editingData.value = JSON.parse(JSON.stringify(currentEvents.value[idx])); showModal.value = true; };
-            const openAddModal = () => { modalMode.value = 'add'; editingIdx.value = -1; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; showModal.value = true; };
             const saveEvent = () => { 
                 if(editingIdx.value === -1) currentEvents.value.push({ ...editingData.value }); 
                 else currentEvents.value.splice(editingIdx.value, 1, { ...editingData.value }); 
@@ -611,9 +915,9 @@
                 } catch (e) {}
             });
 
-            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, currentEvents, shoppingList, totalJPY, totalTWD, formatNum, resetApp, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
+            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, currentEvents, shoppingList, totalJPY, totalTWD, formatNum, resetApp, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
         }
-    }).component('draggable', SafeDraggable).mount('#app');
+    }).mount('#app');
 </script>
 </body>
 </html>
