@@ -61,14 +61,14 @@
         .date-nav {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            padding: 16px 16px;
+            gap: 6px;
+            padding: 16px;
             background: white;
             border-bottom: 1px solid #f1f5f9;
         }
         .date-card {
             padding: 10px 2px;
-            border-radius: 14px;
+            border-radius: 12px;
             background: #f8fafc;
             border: 1px solid #f1f5f9;
             text-align: center;
@@ -83,7 +83,6 @@
             background-color: var(--primary-blue);
             color: white;
             box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2);
-            transform: translateY(-2px);
             border-color: var(--primary-blue);
         }
         .content-area {
@@ -258,7 +257,7 @@
                     <template #item="{ element: event, index: idx }">
                         <div>
                             <div class="trip-card relative group">
-                                <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
+                                <div class="drag-handle p-1"><i class="fa-solid fa-grip-vertical"></i></div>
                                 
                                 <div class="flex-grow min-w-0 py-1">
                                     <div class="flex justify-between items-start mb-1">
@@ -293,24 +292,20 @@
 
             <div v-else-if="tab === 'accounting'" key="acc" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800 px-2 serif">智慧分帳統計</h2>
-                
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-bold text-slate-600">自訂匯率基準</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-slate-400">1 JPY =</span>
-                            <input type="number" v-model="rate" step="0.001" class="w-20 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold text-sky-600 outline-none text-center">
-                            <span class="text-xs text-slate-400">TWD</span>
-                        </div>
+                        <span class="text-sm font-bold text-slate-600">匯率：1 JPY =</span>
+                        <input type="number" v-model="rate" step="0.001" class="w-20 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold text-sky-600 outline-none text-center">
+                        <span class="text-xs text-slate-400">TWD</span>
                     </div>
                     <div class="flex gap-4">
                         <div class="flex-1 bg-sky-50 p-4 rounded-xl">
-                            <div class="text-[10px] uppercase font-bold text-sky-600 mb-1">總花費 (日幣換算)</div>
-                            <div class="text-lg font-bold text-slate-800">¥ {{ formatNum(Math.round(totalJPY)) }}</div>
+                            <div class="text-[10px] uppercase font-bold text-sky-600 mb-1">總花費 (日幣)</div>
+                            <div class="text-lg font-bold">¥ {{ formatNum(Math.round(totalJPY)) }}</div>
                         </div>
                         <div class="flex-1 bg-amber-50 p-4 rounded-xl">
                             <div class="text-[10px] uppercase font-bold text-amber-600 mb-1">折合台幣</div>
-                            <div class="text-lg font-bold text-slate-800">$ {{ formatNum(Math.round(totalTWD)) }}</div>
+                            <div class="text-lg font-bold">$ {{ formatNum(Math.round(totalTWD)) }}</div>
                         </div>
                     </div>
                 </div>
@@ -325,40 +320,36 @@
                             </div>
                         </div>
                         <div v-show="expandedDay === day" class="p-4 border-t border-slate-100 bg-slate-50/30">
-                            
                             <div v-for="exp in getExpenses(day)" :key="exp.id" class="bg-white border border-slate-100 rounded-xl p-3 mb-3 shadow-sm relative">
                                 <button @click="deleteExp(exp.id)" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 transition">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                                 <div class="font-bold text-slate-700 text-sm pr-6 mb-2 break-words">{{ exp.item }}</div>
-                                
                                 <div class="flex justify-between items-end border-t border-slate-50 pt-2 mt-1">
                                     <div class="text-[11px] text-slate-400 flex items-center gap-1">
-                                        <i class="fa-solid" :class="{'fa-credit-card': exp.payment==='信用卡', 'fa-coins': exp.payment==='現金', 'fa-train-subway': exp.payment==='交通卡'}"></i>
-                                        {{ exp.payment }}
+                                        <i class="fa-solid fa-credit-card"></i> {{ exp.payment }}
                                     </div>
                                     <div class="text-right">
                                         <div class="font-bold text-slate-800 text-sm">
                                             {{ exp.currency === '日幣' ? '¥' : 'NT$' }} {{ formatNum(exp.amount) }}
                                         </div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">
-                                            {{ exp.currency === '日幣' ? 'NT$ ' + formatNum(Math.round(exp.amount * rate)) : '¥ ' + formatNum(Math.round(exp.amount / rate)) }}
+                                        <div class="text-[10px] text-slate-400">
+                                            NT$ {{ formatNum(Math.round(exp.currency === '日幣' ? exp.amount * rate : exp.amount)) }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="flex flex-col gap-2 pt-2 mt-2">
-                                <input v-model="newExp[day].item" placeholder="新增品項..." class="w-full bg-white text-sm px-3 py-2 rounded-xl outline-none border border-slate-200 focus:border-sky-300 transition">
-                                <input type="number" v-model="newExp[day].amount" placeholder="金額" class="w-full bg-white text-sm px-3 py-2 rounded-xl outline-none border border-slate-200 focus:border-sky-300 transition">
+                            <div class="flex flex-col gap-2 pt-2">
+                                <input v-model="newExp[day].item" placeholder="新增品項..." class="w-full bg-white text-sm px-3 py-2 rounded-xl outline-none border border-slate-200">
+                                <input type="number" v-model="newExp[day].amount" placeholder="金額" class="w-full bg-white text-sm px-3 py-2 rounded-xl outline-none border border-slate-200">
                                 <div class="flex gap-2">
-                                    <select v-model="newExp[day].currency" class="flex-1 bg-white text-xs px-2 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold outline-none focus:border-sky-300 transition">
-                                        <option value="日幣">日幣 (JPY)</option><option value="台幣">台幣 (TWD)</option>
+                                    <select v-model="newExp[day].currency" class="flex-1 bg-white text-xs px-2 py-2 rounded-xl border border-slate-200 font-bold">
+                                        <option value="日幣">日幣</option><option value="台幣">台幣</option>
                                     </select>
-                                    <select v-model="newExp[day].payment" class="flex-1 bg-white text-xs px-2 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold outline-none focus:border-sky-300 transition">
+                                    <select v-model="newExp[day].payment" class="flex-1 bg-white text-xs px-2 py-2 rounded-xl border border-slate-200 font-bold">
                                         <option value="信用卡">信用卡</option><option value="現金">現金</option><option value="交通卡">交通卡</option>
                                     </select>
-                                    <button @click="addExp(day)" class="flex-1 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-sm active:scale-95 transition">加入</button>
+                                    <button @click="addExp(day)" class="flex-1 bg-sky-500 text-white rounded-xl text-sm font-bold active:scale-95 transition">加入</button>
                                 </div>
                             </div>
                         </div>
@@ -368,125 +359,34 @@
 
             <div v-else-if="tab === 'flights'" key="flights" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800 px-2 serif">航班與行李</h2>
-                <div class="ticket-card">
-                    <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
-                        <div class="font-bold text-sm tracking-wider">【大部隊：星宇航空】</div>
-                        <i class="fa-solid fa-plane-departure text-amber-500"></i>
-                    </div>
-                    <div class="p-4 space-y-3 text-sm">
-                        <p><strong>去程 (5/16)：</strong> JX0870 12:00 (TPE) – 14:40 (OKA)</p>
-                        <div class="ticket-cutout pt-3 mt-3">
-                            <p class="mt-2"><strong>回程 (5/20)：</strong> JX0871 15:50 (OKA) – 16:25 (TPE)</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="ticket-card">
-                    <div class="bg-indigo-900 text-white p-4 flex justify-between items-center">
-                        <div class="font-bold text-sm tracking-wider">【家瑜單飛：中華航空】</div>
-                        <i class="fa-solid fa-plane-departure text-pink-300"></i>
-                    </div>
-                    <div class="p-4 space-y-3 text-sm">
-                        <p><strong>去程 (5/17)：</strong> CI120 08:00 (TPE) – 10:45 (OKA)</p>
-                        <div class="ticket-cutout pt-3 mt-3">
-                            <p class="mt-2"><strong>回程 (5/20)：</strong> CI121 11:55 (OKA) – 12:30 (TPE)</p>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="ticket-card"><div class="bg-slate-800 text-white p-4 font-bold text-sm">【星宇航空 大部隊】</div><div class="p-4 text-sm"><p>5/16 去程 JX0870 12:00 – 14:40</p><p>5/20 回程 JX0871 15:50 – 16:25</p></div></div>
+                <div class="ticket-card"><div class="bg-indigo-900 text-white p-4 font-bold text-sm">【家瑜單飛 中華航空】</div><div class="p-4 text-sm"><p>5/17 去程 CI120 08:00 – 10:45</p><p>5/20 回程 CI121 11:55 – 12:30</p></div></div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-sky-600 mb-2">🎒 隨身登機行李</h3>
-                    <p class="text-xs text-slate-400 mb-4">※ 貴重物品、重要證件、含電池產品務必隨身。</p>
-                    
+                    <h3 class="font-bold text-sky-600 mb-4">🎒 行李清單</h3>
                     <div class="space-y-4">
                         <div v-for="(item, i) in packing.hand" :key="i" class="flex items-center gap-3">
-                            <input type="checkbox" v-model="item.done" class="w-5 h-5 accent-sky-500 rounded cursor-pointer flex-shrink-0">
-                            <input v-model="item.text" class="flex-grow bg-transparent text-sm py-1 outline-none border-b border-transparent focus:border-sky-200 transition-colors leading-relaxed" :class="{'line-through text-slate-400': item.done}">
-                            <button @click="packing.hand.splice(i,1)" class="text-slate-300 hover:text-red-500 p-1 flex-shrink-0 transition-colors"><i class="fa-solid fa-trash-can"></i></button>
+                            <input type="checkbox" v-model="item.done" class="w-5 h-5 accent-sky-500">
+                            <input v-model="item.text" class="flex-grow bg-transparent text-sm outline-none border-b border-transparent focus:border-sky-200" :class="{'line-through text-slate-400': item.done}">
+                            <button @click="packing.hand.splice(i,1)" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
-                        <button @click="packing.hand.push({ text: '新增物品', done: false })" class="w-full mt-2 py-3 border border-dashed border-sky-200 text-sky-500 rounded-xl font-bold text-sm hover:bg-sky-50 transition">
-                            <i class="fa-solid fa-plus mr-1"></i> 新增隨身物品
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-indigo-600 mb-2">🧳 托運行李</h3>
-                    <p class="text-xs text-slate-400 mb-4">※ 尖銳物品、超過 100ml 液體、衣物請置於此。</p>
-                    
-                    <div v-for="(cat, catName) in packing.checked" :key="catName" class="mb-6 last:mb-0">
-                        <h4 class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600 inline-block mb-3">{{ catName }}</h4>
-                        <div class="space-y-4">
-                            <div v-for="(item, i) in cat" :key="i" class="flex items-center gap-3">
-                                <input type="checkbox" v-model="item.done" class="w-5 h-5 accent-indigo-500 rounded cursor-pointer flex-shrink-0">
-                                <input v-model="item.text" class="flex-grow bg-transparent text-sm py-1 outline-none border-b border-transparent focus:border-indigo-200 transition-colors leading-relaxed" :class="{'line-through text-slate-400': item.done}">
-                                <button @click="cat.splice(i,1)" class="text-slate-300 hover:text-red-500 p-1 flex-shrink-0 transition-colors"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                        <button @click="cat.push({ text: '新增物品', done: false })" class="w-full mt-3 py-2 border border-dashed border-indigo-200 text-indigo-500 rounded-xl font-bold text-sm hover:bg-indigo-50 transition">
-                            新增 {{ catName }}
-                        </button>
                     </div>
                 </div>
             </div>
 
             <div v-else-if="tab === 'shopping'" key="shopping" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800 px-2 serif">購物清單</h2>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                    <h3 class="font-bold text-slate-700 text-sm border-b pb-2">新增待購商品</h3>
-                    <div class="space-y-3">
-                        <input v-model="newShop.item" placeholder="商品名稱 (必填)" class="w-full bg-slate-50 text-sm px-3 py-2 rounded-xl outline-none border border-slate-100">
-                        <div class="flex gap-2">
-                            <input v-model="newShop.location" placeholder="購買地點" class="flex-1 bg-slate-50 text-sm px-3 py-2 rounded-xl outline-none border border-slate-100">
-                            <input v-model="newShop.price" placeholder="預估價格 ¥" type="number" class="w-28 bg-slate-50 text-sm px-3 py-2 rounded-xl outline-none border border-slate-100">
-                        </div>
-                        <input v-model="newShop.note" placeholder="備註 (如：數量、顏色)" class="w-full bg-slate-50 text-sm px-3 py-2 rounded-xl outline-none border border-slate-100">
-                        <button @click="addShopping" class="w-full bg-sky-500 text-white py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 transition">加入清單</button>
+                <div v-for="(shop, i) in shoppingList" :key="i" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-3 relative mb-3">
+                    <input type="checkbox" v-model="shop.done" class="w-5 h-5 accent-sky-500 rounded mt-3">
+                    <div class="flex-grow grid grid-cols-1 gap-2" :class="{'opacity-60': shop.done}">
+                        <input v-model="shop.item" class="font-bold text-sm bg-slate-50 px-2 py-1 rounded" :class="{'line-through': shop.done}">
+                        <input v-model="shop.location" placeholder="地點" class="bg-slate-50 text-xs px-2 py-1 rounded">
                     </div>
+                    <button @click="shoppingList.splice(i, 1)" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
-
-                <div class="space-y-3">
-                    <div v-if="shoppingList.length === 0" class="text-center text-slate-400 py-10 text-sm font-bold">
-                        目前清單是空的，開始新增待買目標吧！
-                    </div>
-                    <div v-for="(shop, i) in shoppingList" :key="i" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-3 relative mb-3">
-                        <input type="checkbox" v-model="shop.done" class="w-5 h-5 accent-sky-500 rounded mt-3">
-                        <div class="flex-grow grid grid-cols-1 gap-2" :class="{'opacity-60': shop.done}">
-                            <input v-model="shop.item" class="font-bold text-sm bg-slate-50 px-2 py-1 rounded outline-none focus:border-sky-300 border border-transparent transition" :class="{'line-through text-slate-400': shop.done}">
-                            <div class="flex gap-2">
-                                <input v-model="shop.location" placeholder="地點" class="flex-1 bg-slate-50 text-xs px-2 py-1 rounded outline-none focus:border-sky-300 border border-transparent transition">
-                                <input v-model="shop.price" type="number" placeholder="¥" class="w-20 bg-slate-50 text-xs px-2 py-1 rounded outline-none focus:border-sky-300 border border-transparent transition">
-                            </div>
-                            <input v-model="shop.note" placeholder="備註" class="bg-slate-50 text-xs px-2 py-1 rounded outline-none focus:border-sky-300 border border-transparent transition">
-                        </div>
-                        <button @click="shoppingList.splice(i, 1)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                </div>
+                <button @click="shoppingList.push({done:false, item:'', location:''})" class="w-full py-3 border-2 border-dashed border-sky-200 text-sky-500 rounded-xl font-bold">+ 新增</button>
             </div>
         </transition>
     </main>
-
-    <transition name="slide-up">
-        <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-            <div class="modal-content">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-lg">{{ modalMode === 'add' ? '新增行程' : '編輯行程' }}</h3>
-                    <button @click="closeModal" class="text-slate-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="space-y-3">
-                    <div class="flex gap-2">
-                        <input type="text" v-model="editingData.time" placeholder="時間" class="bg-slate-50 text-sm px-3 py-2 rounded-xl border border-slate-100 outline-none flex-1">
-                        <select v-model="editingData.type" class="bg-slate-50 text-sm px-3 py-2 rounded-xl border border-slate-100 outline-none w-24">
-                            <option>景點</option><option>美食</option><option>購物</option><option>住宿</option><option>航班</option><option>交通</option>
-                        </select>
-                    </div>
-                    <input v-model="editingData.location" placeholder="地點名稱" class="w-full bg-slate-50 text-sm px-3 py-2 rounded-xl border border-slate-100 outline-none font-bold">
-                    <input v-model="editingData.driveTime" placeholder="開車車程 (例如：10 分鐘)" class="w-full bg-slate-50 text-sm px-3 py-2 rounded-xl border border-slate-100 outline-none">
-                    <textarea v-model="editingData.note" placeholder="備註說明" rows="3" class="w-full bg-slate-50 text-sm px-3 py-2 rounded-xl border border-slate-100 outline-none"></textarea>
-                    <button @click="saveEvent" class="w-full bg-sky-500 text-white py-3 rounded-xl font-bold mt-2 shadow-sm active:scale-95 transition">儲存</button>
-                </div>
-            </div>
-        </div>
-    </transition>
 
     <nav class="bottom-nav">
         <div @click="tab = 'itinerary'" class="nav-item" :class="{'active': tab === 'itinerary'}">
@@ -502,11 +402,24 @@
             <i class="fa-solid fa-bag-shopping"></i><span>購物</span>
         </div>
     </nav>
+
+    <transition name="slide-up">
+        <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+            <div class="modal-content">
+                <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">編輯行程</h3><button @click="closeModal"><i class="fa-solid fa-xmark"></i></button></div>
+                <div class="space-y-3">
+                    <input type="text" v-model="editingData.time" placeholder="時間" class="w-full bg-slate-50 p-2 rounded-xl border">
+                    <input v-model="editingData.location" placeholder="地點" class="w-full bg-slate-50 p-2 rounded-xl border font-bold">
+                    <textarea v-model="editingData.note" placeholder="備註" rows="3" class="w-full bg-slate-50 p-2 rounded-xl border"></textarea>
+                    <button @click="saveEvent" class="w-full bg-sky-500 text-white py-3 rounded-xl font-bold">儲存</button>
+                </div>
+            </div>
+        </div>
+    </transition>
 </div>
 
 <script>
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
-
     createApp({
         setup() {
             const tab = ref('itinerary');
@@ -514,172 +427,50 @@
             const weather = ref(null);
             const rate = ref(0.215);
             const expandedDay = ref(1);
-
             const showModal = ref(false);
             const modalMode = ref('add');
             const editingIdx = ref(-1);
-            const editingData = ref({ time: '', type: '景點', location: '', driveTime: '', note: '' });
-            
-            const newExp = reactive({
-                1: { item: '', amount: '', payment: '信用卡', currency: '日幣' },
-                2: { item: '', amount: '', payment: '信用卡', currency: '日幣' },
-                3: { item: '', amount: '', payment: '信用卡', currency: '日幣' },
-                4: { item: '', amount: '', payment: '信用卡', currency: '日幣' },
-                5: { item: '', amount: '', payment: '信用卡', currency: '日幣' }
-            });
+            const editingData = ref({ time:'', type:'景點', location:'', driveTime:'', note:'' });
+            const newExp = reactive({ 1: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 2: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 3: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 4: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 5: { item:'', amount:'', payment:'信用卡', currency:'日幣' } });
 
             const getSaved = (key, def) => {
-                const raw = localStorage.getItem('oki_v13_' + key);
-                if (!raw) return def;
-                try { return JSON.parse(raw); } catch (e) { return def; }
+                const raw = localStorage.getItem('oki_v14_' + key);
+                if(!raw) return def;
+                try { return JSON.parse(raw); } catch(e) { return def; }
             };
 
             const itinerary = ref(getSaved('itin', [
-                { 
-                    date: '5/16 (六)', title: 'Day 1', desc: '煙火開場與北上移動',
-                    events: [
-                        { id: 101, time: '14:40', type: '航班', location: '那霸機場 (OKA)', note: '抵達那霸機場。', driveTime: '5 分鐘' },
-                        { id: 102, time: '15:30 - 16:30', type: '交通', location: 'OTS 臨空豐崎租車', note: '辦理租車與取車。', driveTime: '5 分鐘' },
-                        { id: 103, time: '16:35 - 17:50', type: '購物', location: 'iias 沖繩豐崎', note: '快速晚餐、採買第一晚備品。【停留：1小時15分】', driveTime: '55 分鐘 (預留週末塞車緩衝)' },
-                        { id: 104, time: '19:00', type: '景點', location: '美國村', note: '找車位並步行至海濱。', driveTime: '20:00 - 20:05 煙火秀' },
-                        { id: 105, time: '20:30', type: '交通', location: '前往恩納村', note: '往飯店移動', driveTime: '40 分鐘' },
-                        { id: 106, time: '21:10', type: '住宿', location: '星野集團 BEB5 沖繩瀨良垣', note: '入住飯店', driveTime: '' }
-                    ]
-                },
-                { 
-                    date: '5/17 (日)', title: 'Day 2', desc: '水族館與本部燒肉',
-                    events: [
-                        { id: 201, time: '08:30', type: '交通', location: '離開飯店', note: '開始當日行程', driveTime: '10 分鐘' },
-                        { id: 202, time: '08:40 - 09:15', type: '美食', location: 'Camel (三明治店)', note: '外帶玉子燒三明治', driveTime: '50 分鐘' },
-                        { id: 203, time: '10:05 - 11:05', type: '景點', location: '古宇利島', note: '跨海大橋拍照、島上散步', driveTime: '5 分鐘' },
-                        { id: 204, time: '11:10 - 12:10', type: '美食', location: '古宇利島 蝦蝦飯', note: '建議外帶或快速內用', driveTime: '35 分鐘' },
-                        { id: 205, time: '12:45', type: '景點', location: '美麗海水族館 (P7)', note: '抵達水族館', driveTime: '13:00 海豚表演 / 15:00 鯨鯊餵食' },
-                        { id: 208, time: '15:30 - 17:15', type: '購物', location: '美麗海水族館', note: '館內參觀與伴手禮', driveTime: '15 分鐘' },
-                        { id: 209, time: '17:40', type: '美食', location: '燒肉本部牧場 (本部總店)', note: '晚餐：已預約', driveTime: '50 分鐘' },
-                        { id: 210, time: '20:00', type: '住宿', location: '返回飯店', note: '休息', driveTime: '' }
-                    ]
-                },
-                { 
-                    date: '5/18 (一)', title: 'Day 3', desc: '鳳梨園與童裝大採購',
-                    events: [
-                        { id: 301, time: '08:30', type: '美食', location: '飯店早餐', note: '飯店用餐', driveTime: '10:00 出發' },
-                        { id: 302, time: '10:00 - 11:30', type: '景點', location: '名護鳳梨園', note: '搭乘鳳梨車', driveTime: '25 分鐘' },
-                        { id: 303, time: '12:00 - 12:40', type: '景點', location: '萬座毛', note: '看象鼻岩', driveTime: '15 分鐘' },
-                        { id: 304, time: '12:50 - 14:20', type: '美食', location: '恩納之驛 休憩市場', note: '午餐小吃，必吃海膽醬扇貝', driveTime: '25 分鐘' },
-                        { id: 305, time: '14:50 - 16:00', type: '景點', location: '美國村 (日間場)', note: '補拍白天美照', driveTime: '15 分鐘' },
-                        { id: 306, time: '16:30 - 18:00', type: '購物', location: 'Birthday 港川店', note: '幼童服飾大採購', driveTime: '10 分鐘' },
-                        { id: 307, time: '18:15', type: '住宿', location: '阿拉科喬飯店 (Ala COOJU)', note: '辦理入住', driveTime: '19:00 晚餐' }
-                    ]
-                },
-                { 
-                    date: '5/19 (二)', title: 'Day 4', desc: '國際通與購物大採購',
-                    events: [
-                        { id: 401, time: '08:30', type: '美食', location: '飯店早餐', note: 'Ala COOJU 海景早餐', driveTime: '10 分鐘' },
-                        { id: 402, time: '09:40 - 10:30', type: '購物', location: '沖繩媳婦 (Akebono店)', note: '選物店採購', driveTime: '10 分鐘' },
-                        { id: 403, time: '10:40 - 11:50', type: '景點', location: '波上宮', note: '神社參拜與拍照', driveTime: '10 分鐘' },
-                        { id: 404, time: '12:00 - 14:30', type: '購物', location: '國際通 & 市場本通', note: '午餐、逛雪鹽與伴手禮', driveTime: '15 分鐘' },
-                        { id: 405, time: '15:00 - 18:30', type: '購物', location: 'SAN-A PARCO CITY', note: 'MARKEY’S 童裝、藥妝、超市', driveTime: '18:30 晚餐' }
-                    ]
-                },
-                { 
-                    date: '5/20 (三)', title: 'Day 5', desc: '瀨長島景觀與返程',
-                    events: [
-                        { id: 501, time: '09:00', type: '交通', location: '家瑜出發', note: '單飛成員預約計程車赴機場 (CI121)', driveTime: '' },
-                        { id: 502, time: '10:20 - 12:30', type: '景點', location: '瀨長島 Umikaji Terrace', note: '看飛機、幸福鬆餅', driveTime: '10 分鐘' },
-                        { id: 503, time: '13:00', type: '交通', location: 'OTS 還車', note: '還車記得加滿油', driveTime: '10 分鐘' },
-                        { id: 504, time: '13:50', type: '航班', location: '那霸機場', note: '報到 (JX0871 15:50 起飛)', driveTime: '' }
-                    ]
-                }
+                { date: '5/16 (六)', title: 'Day 1', desc: '煙火與移動', events: [ { id: 101, time: '14:40', type: '航班', location: '那霸機場', note: '抵達', driveTime: '5 分鐘' }, { id: 102, time: '15:30', type: '交通', location: 'OTS 租車', note: '取車', driveTime: '55 分鐘' }, { id: 104, time: '19:00', type: '景點', location: '美國村', note: '煙火秀', driveTime: '40 分鐘' }, { id: 106, time: '21:10', type: '住宿', location: 'BEB5 瀨良垣', note: '入住', driveTime: '' } ] },
+                { date: '5/17 (日)', title: 'Day 2', desc: '水族館', events: [ { id: 201, time: '08:30', type: '交通', location: '飯店出發', note: '', driveTime: '50 分鐘' }, { id: 205, time: '12:45', type: '景點', location: '美麗海水族館', note: '鯨鯊餵食', driveTime: '15 分鐘' }, { id: 209, time: '17:40', type: '美食', location: '燒肉本部牧場', note: '已預約', driveTime: '50 分鐘' } ] },
+                { date: '5/18 (一)', title: 'Day 3', desc: '鳳梨園與購物', events: [ { id: 302, time: '10:00', type: '景點', location: '名護鳳梨園', note: '', driveTime: '25 分鐘' }, { id: 306, time: '16:30', type: '購物', location: 'Birthday 港川店', note: '童裝', driveTime: '' } ] },
+                { date: '5/19 (二)', title: 'Day 4', desc: '國際通', events: [ { id: 403, time: '10:40', type: '景點', location: '波上宮', note: '', driveTime: '10 分鐘' }, { id: 405, time: '15:00', type: '購物', location: 'PARCO CITY', note: '', driveTime: '' } ] },
+                { date: '5/20 (三)', title: 'Day 5', desc: '返程', events: [ { id: 502, time: '10:20', type: '景點', location: '瀨長島', note: '幸福鬆餅', driveTime: '10 分鐘' }, { id: 504, time: '15:50', type: '航班', location: '那霸機場', note: '起飛', driveTime: '' } ] }
             ]));
-
-            const shoppingList = ref(getSaved('shop', []));
-            const packing = ref(getSaved('pack', { 
-                hand: [
-                    { text: '護照正本', done: false },
-                    { text: '日文譯本 (台灣駕照申請，自駕必備)', done: false },
-                    { text: '台灣駕照正本 (須與譯本搭配，缺一不可)', done: false },
-                    { text: '日幣現金 / 信用卡', done: false },
-                    { text: '手機 / 充電線', done: false },
-                    { text: '行動電源 (嚴禁托運，標籤瓦數需清晰)', done: false },
-                    { text: '藍牙耳機', done: false },
-                    { text: 'Visit Japan Web 截圖 (通關用)', done: false },
-                    { text: '保暖薄外套 (機上或車內冷氣強)', done: false },
-                    { text: '輕量折疊傘 (沖繩 5 月梅雨)', done: false },
-                    { text: '常用藥品 (如氣喘藥、個人處方藥)', done: false },
-                    { text: '液體容器 (限 100ml 內，需裝入透明夾鏈袋)', done: false }
-                ], 
-                checked: {
-                    '衣物與配件': [
-                        { text: '短袖上衣 (天數份)', done: false },
-                        { text: '短褲 / 輕便長褲', done: false },
-                        { text: '內衣褲 / 襪子', done: false },
-                        { text: '睡衣 / 居家服', done: false },
-                        { text: '走路鞋 (建議穿一雙、帶一雙備用)', done: false },
-                        { text: '涼鞋 / 夾腳拖 (海邊、雨天必備)', done: false },
-                        { text: '太陽眼鏡 / 遮陽帽', done: false }
-                    ],
-                    '洗漱與保養': [
-                        { text: '大型瓶裝液體 (超過 100ml 洗沐保養品)', done: false },
-                        { text: '防曬乳', done: false },
-                        { text: '牙刷 / 牙膏 / 刮鬍刀 (部分飯店不提供)', done: false },
-                        { text: '化妝品 / 卸妝用品', done: false },
-                        { text: '隱形眼鏡藥水 / 備用眼鏡', done: false }
-                    ],
-                    '保健與防疫': [
-                        { text: '常備藥 (感冒、退燒、止痛、胃藥、暈車藥)', done: false },
-                        { text: '止癢藥膏 / 防蚊液 (5月沖繩蚊蟲較多)', done: false },
-                        { text: 'OK 繃 / 小罐酒精噴霧', done: false }
-                    ],
-                    '雜項與工具': [
-                        { text: '大容量摺疊購物袋 (裝藥妝戰利品)', done: false },
-                        { text: '多孔充電頭 / 延長線', done: false },
-                        { text: '指甲剪 / 小剪刀 (嚴禁隨身)', done: false },
-                        { text: '夾鏈袋 / 塑膠袋 (收納濕衣物)', done: false }
-                    ]
-                } 
-            }));
-            const expenses = ref(getSaved('exp', []));
 
             const totalJPY = computed(() => expenses.value.reduce((s, e) => s + (e.currency === '台幣' ? e.amount / rate.value : e.amount), 0));
             const totalTWD = computed(() => expenses.value.reduce((s, e) => s + (e.currency === '日幣' ? e.amount * rate.value : e.amount), 0));
             const getExpenses = (day) => expenses.value.filter(e => e.day === day);
             const getDayTotalJPY = (day) => getExpenses(day).reduce((s, e) => s + (e.currency === '台幣' ? e.amount / rate.value : e.amount), 0);
             const formatNum = (n) => (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            const toggleDay = (day) => expandedDay.value = expandedDay.value === day ? null : day;
             const openMap = (loc) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc + ' 沖繩')}`, '_blank');
-
-            const addExp = (day) => {
-                if(newExp[day].item && newExp[day].amount) {
-                    expenses.value.unshift({ id: Date.now(), day, ...newExp[day] });
-                    newExp[day].item = ''; newExp[day].amount = '';
-                }
-            };
+            const toggleDay = (day) => expandedDay.value = expandedDay.value === day ? null : day;
+            const addExp = (day) => { if(newExp[day].item && newExp[day].amount) { expenses.value.unshift({ id: Date.now(), day, ...newExp[day] }); newExp[day].item = ''; newExp[day].amount = ''; } };
             const deleteExp = (id) => expenses.value = expenses.value.filter(e => e.id !== id);
-
-            const newShop = ref({ item: '', location: '', price: '', note: '' });
-            const addShopping = () => {
-                if(newShop.value.item) {
-                    shoppingList.value.unshift({ done: false, ...newShop.value });
-                    newShop.value = { item: '', location: '', price: '', note: '' };
-                }
-            };
-
-            const openAddModal = () => { modalMode.value = 'add'; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; showModal.value = true; };
             const openEditModal = (idx) => { modalMode.value = 'edit'; editingIdx.value = idx; editingData.value = { ...itinerary.value[activeDay.value].events[idx] }; showModal.value = true; };
-            const closeModal = () => showModal.value = false;
-            const saveEvent = () => {
-                if(modalMode.value === 'add') itinerary.value[activeDay.value].events.push({ ...editingData.value });
-                else itinerary.value[activeDay.value].events[editingIdx.value] = { ...editingData.value };
-                closeModal();
-            };
-            const deleteEvent = (idx) => { if(confirm('確定刪除？')) itinerary.value[activeDay.value].events.splice(idx, 1); };
+            const openAddModal = () => { modalMode.value = 'add'; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; showModal.value = true; };
+            const saveEvent = () => { if(modalMode.value === 'add') itinerary.value[activeDay.value].events.push({ ...editingData.value }); else itinerary.value[activeDay.value].events[editingIdx.value] = { ...editingData.value }; showModal.value = false; };
+            const deleteEvent = (idx) => { if(confirm('刪除？')) itinerary.value[activeDay.value].events.splice(idx, 1); };
+
+            const shoppingList = ref(getSaved('shop', []));
+            const packing = ref(getSaved('pack', { hand: [{text:'護照正本',done:false},{text:'日文譯本',done:false}], checked: {'衣物':[]} }));
+            const expenses = ref(getSaved('exp', []));
 
             watch([packing, expenses, rate, itinerary, shoppingList], () => {
-                localStorage.setItem('oki_v13_pack', JSON.stringify(packing.value));
-                localStorage.setItem('oki_v13_exp', JSON.stringify(expenses.value));
-                localStorage.setItem('oki_v13_rate', JSON.stringify(rate.value));
-                localStorage.setItem('oki_v13_itin', JSON.stringify(itinerary.value));
-                localStorage.setItem('oki_v13_shop', JSON.stringify(shoppingList.value));
+                localStorage.setItem('oki_v14_pack', JSON.stringify(packing.value));
+                localStorage.setItem('oki_v14_exp', JSON.stringify(expenses.value));
+                localStorage.setItem('oki_v14_rate', JSON.stringify(rate.value));
+                localStorage.setItem('oki_v14_itin', JSON.stringify(itinerary.value));
+                localStorage.setItem('oki_v14_shop', JSON.stringify(shoppingList.value));
             }, { deep: true });
 
             onMounted(async () => {
@@ -690,7 +481,7 @@
                 } catch (e) {}
             });
 
-            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal, saveEvent, deleteEvent };
+            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
         }
     }).component('draggable', window.vuedraggable).mount('#app');
 </script>
