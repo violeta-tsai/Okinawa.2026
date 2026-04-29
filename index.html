@@ -29,6 +29,7 @@
         html, body {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
+            height: var(--app-height, 100dvh);
             background-color: #e2e8f0;
             font-family: 'Noto Sans TC', sans-serif;
             color: var(--text-main);
@@ -367,6 +368,12 @@
 </div>
 
 <script>
+    // iPhone Safari 100vh 修正：避免底部網址列造成畫面高度計算錯誤
+    const setAppHeight = () => document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    setAppHeight();
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+
     // PWA 動態注入 Manifest
     const manifest = {
         name: "沖繩の五天四夜遊",
@@ -418,6 +425,8 @@
                     return def;
                 }
             };
+
+            const expenses = ref(getSaved('exp', []));
 
             const itinerary = ref(getSaved('itin', [
                 { date: '5/16 (六)', title: 'Day 1', desc: '煙火開場與北上移動', events: [ { id: 101, time: '14:40', type: '航班', location: '那霸機場 (OKA)', note: '抵達那霸機場。', driveTime: '' }, { id: 102, time: '15:30 - 16:30', type: '交通', location: 'OTS 臨空豐崎租車', note: '辦理租車與取車。', driveTime: '5 分鐘' }, { id: 103, time: '16:35 - 17:50', type: '購物', location: 'iias 沖繩豐崎', note: '快速晚餐、採買第一晚備品。【停留：1小時15分】', driveTime: '55 分鐘 (預留週末塞車緩衝)' }, { id: 104, time: '19:00', type: '景點', location: '美國村', note: '找車位並步行至海濱。', driveTime: '' }, { id: 105, time: '20:00 - 20:05', type: '景點', location: '美國村煙火秀', note: '每週六固定施放。', driveTime: '40 分鐘' }, { id: 106, time: '21:10', type: '住宿', location: '星野集團 BEB5 沖繩瀨良垣', note: '入住星野集團 BEB5 沖繩瀨良垣。', driveTime: '' } ] },
