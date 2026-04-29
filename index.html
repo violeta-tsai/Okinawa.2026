@@ -231,8 +231,13 @@
                 <p class="text-[10px] text-sky-600 font-bold tracking-widest uppercase mb-1">Luxury Escape</p>
                 <h1 class="text-2xl font-bold text-slate-800 serif">沖繩の五天四夜遊</h1>
             </div>
-            <div v-if="weather" class="bg-sky-50 px-3 py-1.5 rounded-full text-xs font-semibold text-sky-700 flex items-center gap-2">
-                <i class="fa-solid fa-cloud-sun"></i> {{ weather.temp }}°C
+            <div class="flex items-center gap-2">
+                <div v-if="weather" class="bg-sky-50 px-3 py-1.5 rounded-full text-xs font-semibold text-sky-700 flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-sun"></i> {{ weather.temp }}°C
+                </div>
+                <button @click="resetApp" class="bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-500 px-3 py-1.5 rounded-full text-xs font-bold transition">
+                    重置
+                </button>
             </div>
         </div>
     </header>
@@ -480,9 +485,16 @@
 </div>
 
 <script>
+    const APP_VERSION = 'v1.0.2';
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
     createApp({
         setup() {
+            const storedVersion = localStorage.getItem('app_version');
+            if (storedVersion !== APP_VERSION) {
+                localStorage.clear();
+                localStorage.setItem('app_version', APP_VERSION);
+            }
+
             const tab = ref('itinerary');
             const activeDay = ref(0);
             const weather = ref(null);
@@ -495,7 +507,7 @@
             const newExp = reactive({ 1: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 2: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 3: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 4: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 5: { item:'', amount:'', payment:'信用卡', currency:'日幣' } });
 
             const getSaved = (key, def) => {
-                const raw = localStorage.getItem('oki_v17_' + key);
+                const raw = localStorage.getItem('oki_v18_' + key);
                 if(!raw) return def;
                 try { return JSON.parse(raw); } catch(e) { return def; }
             };
@@ -531,6 +543,13 @@
                 }, 0);
             };
             const formatNum = (n) => (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            const resetApp = () => {
+                if (confirm('確定要清除所有資料並載入最新版嗎？')) {
+                    localStorage.clear();
+                    localStorage.setItem('app_version', APP_VERSION);
+                    location.reload();
+                }
+            };
             const openMap = (loc) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc + ' 沖繩')}`, '_blank');
             const toggleDay = (day) => expandedDay.value = expandedDay.value === day ? null : day;
             
@@ -589,7 +608,7 @@
 
             const saveLocal = (key, value) => {
                 try {
-                    localStorage.setItem('oki_v17_' + key, JSON.stringify(value));
+                    localStorage.setItem('oki_v18_' + key, JSON.stringify(value));
                 } catch (e) {
                     console.warn('localStorage save failed:', key, e);
                 }
@@ -612,7 +631,7 @@
                 } catch (e) {}
             });
 
-            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
+            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, resetApp, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
         }
     }).component('draggable', window.vuedraggable).mount('#app');
 </script>
