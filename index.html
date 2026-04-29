@@ -24,76 +24,83 @@
     <style>
         :root { --primary-blue: #0284c7; --bg-light: #f8fafc; --text-main: #0f172a; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        /* iPhone PWA 高度修正：不要再依賴 100vh，改用 JS 寫入的真實高度 */
+
+        /* 全新思路：不再用 fixed/absolute 硬貼底，改成整個 App 滿版排列 */
         html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            height: -webkit-fill-available;
-            background: #ffffff;
+            min-height: -webkit-fill-available;
             overflow: hidden;
+            background: #ffffff;
         }
 
         body {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: var(--real-vh, 100vh);
+            height: 100vh;
             min-height: -webkit-fill-available;
+            overflow: hidden;
             background: #ffffff;
             font-family: 'Noto Sans TC', sans-serif;
             color: var(--text-main);
-            overflow: hidden;
-            position: fixed;
-            inset: 0;
-            overscroll-behavior: none;
+        }
+
+        @supports (height: 100dvh) {
+            body { height: 100dvh; }
         }
 
         #app-wrapper {
-            position: fixed;
-            inset: 0;
             width: 100%;
-            height: var(--real-vh, 100vh);
+            height: 100%;
             min-height: -webkit-fill-available;
             display: flex;
             justify-content: center;
             align-items: stretch;
-            background-color: #ffffff;
+            background: #e2e8f0;
             overflow: hidden;
         }
 
         #app {
             width: 100%;
             max-width: 430px;
-            height: var(--real-vh, 100vh);
-            min-height: var(--real-vh, 100vh);
+            height: 100%;
+            min-height: 0;
             background-color: var(--bg-light);
             position: relative;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr) auto;
             overflow: hidden;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
         }
 
-         (min-width: 431px) {
-            body, #app-wrapper { background-color: #e2e8f0; }
-            #app { height: 90vh; min-height: 90vh; max-height: 932px; border-radius: 24px; top: 5vh; }
+        @media (min-width: 431px) {
+            #app-wrapper { align-items: center; }
+            #app {
+                height: min(932px, 90vh);
+                max-height: 932px;
+                border-radius: 24px;
+            }
+            @supports (height: 100dvh) {
+                #app { height: min(932px, 90dvh); }
+            }
         }
-        
+
         h1, h2, .serif { font-family: 'Playfair Display', 'Noto Sans TC', serif; }
         .app-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); z-index: 40; border-bottom: 1px solid #f1f5f9; padding-top: max(2rem, env(safe-area-inset-top)); }
         .date-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 12px; background: white; border-bottom: 1px solid #f1f5f9; }
         .date-card { padding: 10px 2px; border-radius: 12px; background: #f8fafc; border: 1px solid #f1f5f9; text-align: center; transition: all 0.2s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .date-card.active { background-color: var(--primary-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); border-color: var(--primary-blue); transform: translateY(-2px); }
-        
+
         .content-area {
-            flex-grow: 1;
+            min-height: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding: 16px;
-            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            padding-bottom: 16px;
+            overscroll-behavior: contain;
         }
 
         .trip-card { background: white; border-radius: 20px; padding: 16px; display: flex; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 12px; }
@@ -101,60 +108,31 @@
         .drive-time { display: flex; align-items: center; gap: 8px; padding-left: 36px; margin: -4px 0 8px 0; color: var(--primary-blue); font-size: 12px; font-weight: 600; }
         .drive-time::before { content: ''; width: 2px; height: 18px; background: repeating-linear-gradient(to bottom, var(--primary-blue) 0, var(--primary-blue) 4px, transparent 4px, transparent 8px); }
         .drive-input { background: transparent; border: none; border-bottom: 1px dashed #bae6fd; color: var(--primary-blue); font-size: 12px; font-weight: 600; outline: none; flex: 1; min-width: 0; padding: 2px 4px; }
-        
-        /* 最保險貼底：導覽列固定在 viewport 底部，並用 after 把 safe-area 空白補成同色 */
+
+        /* 底部導覽列改成正常版面流，不再脫離容器 */
         .bottom-nav {
-            position: fixed;
-            left: 50%;
-            right: auto;
-            bottom: 0;
-            transform: translateX(-50%);
+            position: relative;
             width: 100%;
-            max-width: 430px;
             background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            display: flex;
-            justify-content: space-around;
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            display: flex; justify-content: space-around;
             padding-top: 10px;
-            padding-bottom: calc(14px + env(safe-area-inset-bottom));
+            padding-bottom: max(14px, env(safe-area-inset-bottom));
             border-top: 1px solid #e2e8f0;
-            z-index: 9999;
+            z-index: 50;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+            flex-shrink: 0;
         }
-
-        .bottom-nav::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 100%;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.98);
-            pointer-events: none;
-        }
-
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #94a3b8; font-size: 11px; font-weight: 800; cursor: pointer; width: 25%; padding: 4px 0; transition: all 0.2s ease; }
         .nav-item.active { color: var(--primary-blue); transform: scale(1.05); }
         .nav-item i { font-size: 22px; line-height: 1; transition: all 0.2s ease; }
         .nav-item.active i { transform: translateY(-2px); }
 
-        @media (min-width: 431px) {
-            .bottom-nav {
-                position: absolute;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                transform: none;
-                max-width: none;
-            }
-        }
-
         .ticket-card { background: white; border-radius: 16px; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 20px; }
         .ticket-cutout { border-top: 2px dashed #cbd5e1; position: relative; }
         .ticket-cutout::before, .ticket-cutout::after { content: ''; position: absolute; top: -10px; width: 20px; height: 20px; background: var(--bg-light); border-radius: 50%; border: 1px solid #e2e8f0; }
         .ticket-cutout::before { left: -11px; } .ticket-cutout::after { right: -11px; }
-        
+
         .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 60; display: flex; justify-content: center; align-items: flex-end; }
         .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom)); max-height: 85%; overflow-y: auto; }
         [v-cloak] { display: none; }
@@ -418,26 +396,16 @@
 </div>
 
 <script>
-    // iPhone PWA 真實高度修正
-    // standalone 模式下 100vh / 100dvh 仍可能少算或多算底部區域
-    const setRealViewportHeight = () => {
-        const vv = window.visualViewport;
-        const height = Math.max(
-            window.innerHeight || 0,
-            document.documentElement.clientHeight || 0,
-            vv ? vv.height : 0
-        );
-        document.documentElement.style.setProperty("--real-vh", `${height}px`);
+    // iPhone Safari 100vh 修正：避免底部網址列造成畫面高度計算錯誤
+    // iPhone PWA 補強：只更新 body 高度，不再控制底部導覽列位置
+    const syncViewportHeight = () => {
+        const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.body.style.height = `${h}px`;
     };
-
-    setRealViewportHeight();
-    window.addEventListener("resize", setRealViewportHeight);
-    window.addEventListener("pageshow", setRealViewportHeight);
-    window.addEventListener("orientationchange", () => setTimeout(setRealViewportHeight, 300));
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", setRealViewportHeight);
-        window.visualViewport.addEventListener("scroll", setRealViewportHeight);
-    }
+    syncViewportHeight();
+    window.addEventListener('resize', syncViewportHeight);
+    window.addEventListener('orientationchange', syncViewportHeight);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', syncViewportHeight);
 
     // PWA 動態注入 Manifest
     const manifest = {
@@ -455,7 +423,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.10-pwa-safearea'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.8'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
