@@ -104,7 +104,7 @@
             position: fixed;
             left: 50%;
             right: auto;
-            bottom: 0;
+            bottom: calc(-1 * env(safe-area-inset-bottom));
             transform: translateX(-50%);
             width: 100%;
             max-width: 430px;
@@ -112,9 +112,9 @@
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
             display: flex; justify-content: space-around;
             padding-top: 10px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            padding-bottom: calc(14px + env(safe-area-inset-bottom));
             border-top: 1px solid #e2e8f0;
-            z-index: 50;
+            z-index: 999;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #94a3b8; font-size: 11px; font-weight: 800; cursor: pointer; width: 25%; padding: 4px 0; transition: all 0.2s ease; }
@@ -405,16 +405,13 @@
     // iPhone 加入主畫面後，100vh / 100dvh 有時會把底部 Home Bar 區域算錯
     // 用 visualViewport 優先取得實際可視高度，讓底部導覽列真正貼齊螢幕底部
     const setAppHeight = () => {
-        const h = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight;
+        const h = window.innerHeight || document.documentElement.clientHeight;
         document.documentElement.style.setProperty('--app-height', `${h}px`);
     };
     setAppHeight();
     window.addEventListener('resize', setAppHeight);
-    window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', setAppHeight);
-        window.visualViewport.addEventListener('scroll', setAppHeight);
-    }
+    window.addEventListener('pageshow', setAppHeight);
+    window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 350));
 
     // PWA 動態注入 Manifest
     const manifest = {
@@ -432,7 +429,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.9-pwa-bottom'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.10-pwa-safearea'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
