@@ -25,48 +25,44 @@
         :root { --primary-blue: #0284c7; --bg-light: #f8fafc; --text-main: #0f172a; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* 全新思路：不再用 fixed/absolute 硬貼底，改成整個 App 滿版排列 */
+        /* iOS PWA 滿版修正：使用 dvh + safe-area，不再用 JS 寫死高度 */
         html {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
-            min-height: -webkit-fill-available;
+            height: 100dvh;
+            min-height: 100dvh;
             overflow: hidden;
-            background: #ffffff;
+            background-color: var(--bg-light);
         }
 
         body {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100vh;
-            min-height: -webkit-fill-available;
+            height: 100dvh;
+            min-height: 100dvh;
             overflow: hidden;
-            background: #ffffff;
+            background-color: var(--bg-light);
             font-family: 'Noto Sans TC', sans-serif;
             color: var(--text-main);
         }
 
-        @supports (height: 100dvh) {
-            body { height: 100dvh; }
-        }
-
         #app-wrapper {
             width: 100%;
-            height: 100%;
-            min-height: -webkit-fill-available;
+            height: 100dvh;
+            min-height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: stretch;
-            background: #e2e8f0;
+            background-color: var(--bg-light);
             overflow: hidden;
         }
 
         #app {
             width: 100%;
             max-width: 430px;
-            height: 100%;
+            height: 100dvh;
             min-height: 0;
             background-color: var(--bg-light);
             position: relative;
@@ -77,14 +73,12 @@
         }
 
         @media (min-width: 431px) {
+            html, body, #app-wrapper { background-color: #e2e8f0; }
             #app-wrapper { align-items: center; }
             #app {
-                height: min(932px, 90vh);
+                height: min(932px, 90dvh);
                 max-height: 932px;
                 border-radius: 24px;
-            }
-            @supports (height: 100dvh) {
-                #app { height: min(932px, 90dvh); }
             }
         }
 
@@ -117,7 +111,7 @@
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
             display: flex; justify-content: space-around;
             padding-top: 10px;
-            padding-bottom: max(14px, env(safe-area-inset-bottom));
+            padding-bottom: calc(14px + env(safe-area-inset-bottom));
             border-top: 1px solid #e2e8f0;
             z-index: 50;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
@@ -396,17 +390,6 @@
 </div>
 
 <script>
-    // iPhone Safari 100vh 修正：避免底部網址列造成畫面高度計算錯誤
-    // iPhone PWA 補強：只更新 body 高度，不再控制底部導覽列位置
-    const syncViewportHeight = () => {
-        const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        document.body.style.height = `${h}px`;
-    };
-    syncViewportHeight();
-    window.addEventListener('resize', syncViewportHeight);
-    window.addEventListener('orientationchange', syncViewportHeight);
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', syncViewportHeight);
-
     // PWA 動態注入 Manifest
     const manifest = {
         name: "沖繩の五天四夜遊",
@@ -423,7 +406,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.8'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.9-ios-dvh'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
