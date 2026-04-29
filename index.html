@@ -77,7 +77,7 @@
     <div v-if="tab === 'itinerary'" class="date-nav">
         <div v-for="(day, index) in itinerary" :key="index" @click="activeDay = index" class="date-card" :class="{ 'active': activeDay === index }">
             <div class="text-[11px] font-bold opacity-80 mb-0.5">Day {{ index + 1 }}</div>
-            <div class="text-[13px] font-bold leading-tight">{{ day.date ? day.date.split(' ')[0] : '' }}</div>
+            <div class="text-[13px] font-bold leading-tight">{{ day.date || '' }}</div>
         </div>
     </div>
 
@@ -136,11 +136,11 @@
                     <div class="flex gap-3">
                         <div class="flex-1 bg-sky-50 p-3 rounded-xl text-center">
                             <div class="text-[10px] uppercase font-bold text-sky-600 mb-1">總花費 (日幣)</div>
-                            <div class="text-lg font-bold text-slate-800 truncate">¥ {{ formatNum(Math.round(totalJPY)) }}</div>
+                            <div class="text-lg font-bold text-slate-800 truncate">¥ {{ formatNum(Math.round(Number(totalJPY)||0)) }}</div>
                         </div>
                         <div class="flex-1 bg-amber-50 p-3 rounded-xl text-center">
                             <div class="text-[10px] uppercase font-bold text-amber-600 mb-1">折合台幣</div>
-                            <div class="text-lg font-bold text-slate-800 truncate">$ {{ formatNum(Math.round(totalTWD)) }}</div>
+                            <div class="text-lg font-bold text-slate-800 truncate">$ {{ formatNum(Math.round(Number(totalTWD)||0)) }}</div>
                         </div>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
                                         <i class="fa-solid" :class="{'fa-credit-card': exp.payment==='信用卡', 'fa-coins': exp.payment==='現金', 'fa-train-subway': exp.payment==='交通卡'}"></i> {{ exp.payment }}
                                     </div>
                                     <div class="text-right">
-                                        <div class="font-bold text-slate-800 text-sm">{{ exp.currency === '日幣' ? '¥' : 'NT$' }} {{ formatNum(exp.amount) }}</div>
+                                        <div class="font-bold text-slate-800 text-sm">{{ exp.currency === '日幣' ? '¥' : 'NT$' }} {{ formatNum(Number(exp.amount)||0) }}</div>
                                         <div class="text-[10px] text-slate-400 mt-0.5">{{ exp.currency === '日幣' ? 'NT$ ' + formatNum(Math.round((Number(exp.amount)||0) * (Number(rate)||0.215))) : '¥ ' + formatNum(Math.round((Number(exp.amount)||0) / (Number(rate)||0.215))) }}</div>
                                     </div>
                                 </div>
@@ -295,7 +295,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.4'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.5'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
@@ -306,7 +306,6 @@
         setup() {
             const storedVersion = localStorage.getItem('app_version');
             if (storedVersion !== APP_VERSION) {
-                localStorage.clear();
                 localStorage.setItem('app_version', APP_VERSION);
             }
 
@@ -316,18 +315,20 @@
             const rate = ref(0.215);
             const expandedDay = ref(1);
             const showModal = ref(false);
+            const modalMode = ref('add');
             const editingIdx = ref(-1);
             const editingData = ref({ time:'', type:'景點', location:'', driveTime:'', note:'' });
             const newExp = reactive({ 1: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 2: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 3: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 4: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 5: { item:'', amount:'', payment:'信用卡', currency:'日幣' } });
 
             const getSaved = (key, def) => {
-                const raw = localStorage.getItem('oki_v22_' + key);
+                const raw = localStorage.getItem('oki_v23_' + key);
                 if(!raw) return def;
-                try { 
-                    const parsed = JSON.parse(raw); 
-                    if (!parsed || (Array.isArray(parsed) && parsed.length === 0) || Object.keys(parsed).length === 0) return def;
-                    return parsed;
-                } catch(e) { return def; }
+                try {
+                    const parsed = JSON.parse(raw);
+                    return parsed ?? def;
+                } catch(e) {
+                    return def;
+                }
             };
 
             const itinerary = ref(getSaved('itin', [
@@ -390,8 +391,8 @@
             };
             const deleteExp = (id) => expenses.value = expenses.value.filter(e => e.id !== id);
             
-            const openEditModal = (idx) => { editingIdx.value = idx; editingData.value = JSON.parse(JSON.stringify(currentEvents.value[idx])); showModal.value = true; };
-            const openAddModal = () => { editingIdx.value = -1; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; showModal.value = true; };
+            const openEditModal = (idx) => { modalMode.value = 'edit'; editingIdx.value = idx; editingData.value = JSON.parse(JSON.stringify(currentEvents.value[idx])); showModal.value = true; };
+            const openAddModal = () => { modalMode.value = 'add'; editingIdx.value = -1; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; showModal.value = true; };
             const saveEvent = () => { 
                 if(editingIdx.value === -1) currentEvents.value.push({ ...editingData.value }); 
                 else currentEvents.value.splice(editingIdx.value, 1, { ...editingData.value }); 
@@ -426,16 +427,16 @@
 
             watch([packing, expenses, rate, itinerary, shoppingList], () => {
                 try {
-                    localStorage.setItem('oki_v22_pack', JSON.stringify(packing.value));
-                    localStorage.setItem('oki_v22_exp', JSON.stringify(expenses.value));
-                    localStorage.setItem('oki_v22_rate', JSON.stringify(rate.value));
-                    localStorage.setItem('oki_v22_itin', JSON.stringify(itinerary.value));
-                    localStorage.setItem('oki_v22_shop', JSON.stringify(shoppingList.value));
+                    localStorage.setItem('oki_v23_pack', JSON.stringify(packing.value));
+                    localStorage.setItem('oki_v23_exp', JSON.stringify(expenses.value));
+                    localStorage.setItem('oki_v23_rate', JSON.stringify(rate.value));
+                    localStorage.setItem('oki_v23_itin', JSON.stringify(itinerary.value));
+                    localStorage.setItem('oki_v23_shop', JSON.stringify(shoppingList.value));
                 } catch (e) {}
             }, { deep: true });
 
             onMounted(async () => {
-                rate.value = getSaved('rate', 0.215);
+                rate.value = Number(getSaved('rate', 0.215)) || 0.215;
                 try {
                     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=26.2124&longitude=127.6809&current_weather=true');
                     if (res.ok) {
