@@ -30,12 +30,11 @@
             min-height: 100dvh;
             font-family: 'Noto Sans TC', sans-serif;
             color: var(--text-main);
-            overflow: hidden; /* 防止整個網頁被上下拉動 */
+            overflow: hidden;
         }
         #app {
             width: 100%;
             max-width: 430px;
-            /* 關鍵修正 1：使用 100dvh 解決手機瀏覽器上下工具列遮擋問題 */
             height: 100dvh;
             background-color: var(--bg-light);
             position: relative;
@@ -59,11 +58,10 @@
             backdrop-filter: blur(12px);
             z-index: 40;
             border-bottom: 1px solid #f1f5f9;
-            padding-top: max(2rem, env(safe-area-inset-top)); /* 適配 iPhone 瀏海 */
+            padding-top: max(2rem, env(safe-area-inset-top));
         }
         .date-nav {
             display: grid;
-            /* 關鍵修正 3：使用 minmax 防止網格內容撐破畫面 */
             grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 6px;
             padding: 12px;
@@ -446,7 +444,7 @@
     <transition name="slide-up">
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
             <div class="modal-content">
-                <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg">編輯詳細行程</h3><button @click="closeModal" class="p-2"><i class="fa-solid fa-xmark text-xl text-slate-300"></i></button></div>
+                <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg">{{ modalMode === 'add' ? '新增行程' : '編輯行程' }}</h3><button @click="closeModal" class="p-2"><i class="fa-solid fa-xmark text-xl text-slate-300"></i></button></div>
                 <div class="space-y-4">
                     <div class="flex gap-2">
                         <input type="text" v-model="editingData.time" placeholder="時間" class="flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100 outline-none">
@@ -489,19 +487,21 @@
             const rate = ref(0.215);
             const expandedDay = ref(1);
             const showModal = ref(false);
+            const modalMode = ref('add');
             const editingIdx = ref(-1);
             const editingData = ref({ time:'', type:'景點', location:'', driveTime:'', note:'' });
             const newExp = reactive({ 1: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 2: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 3: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 4: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 5: { item:'', amount:'', payment:'信用卡', currency:'日幣' } });
 
             const getSaved = (key, def) => {
-                const raw = localStorage.getItem('oki_v16_' + key);
+                const raw = localStorage.getItem('oki_v17_' + key);
                 if(!raw) return def;
                 try { return JSON.parse(raw); } catch(e) { return def; }
             };
 
+            // 初始化五天預設行程
             const itinerary = ref(getSaved('itin', [
-                { date: '5/16 (六)', title: 'Day 1', desc: '煙火開場與北上移動', events: [ { id: 101, time: '14:40', type: '航班', location: '那霸機場 (OKA)', note: '抵達那霸機場。', driveTime: '' }, { id: 102, time: '15:30 - 16:30', type: '交通', location: 'OTS 臨空豐崎租車', note: '辦理租車與取車。', driveTime: '5 分鐘' }, { id: 103, time: '16:35 - 17:50', type: '購物', location: 'iias 沖繩豐崎', note: '快速晚餐、採買第一晚備品。【停留：1小時15分】', driveTime: '55 分鐘 (預留週末塞車緩衝)' }, { id: 104, time: '19:00', type: '景點', location: '美國村', note: '找車位並步行至海濱。', driveTime: '' }, { id: 105, time: '20:00 - 20:05', type: '景點', location: '美國村煙火秀', note: '每週六固定施放。', driveTime: '40 分鐘' }, { id: 106, time: '21:10', type: '住宿', location: '星野集團 BEB5 沖繩瀨良垣', note: '入住星野集團 BEB5 沖繩瀨良垣。', driveTime: '' } ] },
-                { date: '5/17 (日)', title: 'Day 2', desc: '美麗海水族館與本部燒肉', events: [ { id: 201, time: '08:30', type: '交通', location: '離開飯店', note: '星野集團 BEB5 沖繩瀨良垣', driveTime: '10 分鐘' }, { id: 202, time: '08:40 - 09:15', type: '美食', location: 'Camel (三明治店)', note: '9點前抵達外帶玉子燒三明治。【停留：35分】', driveTime: '50 分鐘' }, { id: 203, time: '10:05 - 11:05', type: '景點', location: '古宇利島', note: '跨海大橋拍照、島上散步。【停留：1小時】', driveTime: '5 分鐘' }, { id: 204, time: '11:10 - 12:10', type: '美食', location: '古宇利島 蝦蝦飯', note: '建議外帶或快速內用。【停留：1小時】', driveTime: '35 分鐘' }, { id: 205, time: '12:45', type: '景點', location: '美麗海水族館 (P7停車場)', note: '抵達 美麗海水族館 (P7停車場)。', driveTime: '' }, { id: 206, time: '13:00', type: '景點', location: '海豚表演', note: '戶外劇場，長輩可坐著觀賞。', driveTime: '' }, { id: 207, time: '15:00', type: '景點', location: '鯨鯊餵食秀', note: '黑潮之海大水槽，單飛成員在此會合。', driveTime: '' }, { id: 208, time: '15:30 - 17:15', type: '購物', location: '美麗海水族館', note: '館內參觀與伴手禮採購。【停留：4.5小時】', driveTime: '15 分鐘' }, { id: 209, time: '17:40', type: '美食', location: '燒肉本部牧場 (本部總店)', note: '晚餐：燒肉本部牧場 (本部總店) ★ 已預約。', driveTime: '50 分鐘' }, { id: 210, time: '20:00', type: '住宿', location: '返回飯店', note: '返回 BEB5 飯店。', driveTime: '' } ] },
+                { date: '5/16 (六)', title: 'Day 1', desc: '煙火與移動', events: [ { id: 101, time: '14:40', type: '航班', location: '那霸機場 (OKA)', note: '抵達那霸機場。', driveTime: '5 分鐘' }, { id: 102, time: '15:30 - 16:30', type: '交通', location: 'OTS 臨空豐崎租車', note: '辦理租車與取車。', driveTime: '55 分鐘 (預留週末塞車緩衝)' }, { id: 103, time: '16:35 - 17:50', type: '購物', location: 'iias 沖繩豐崎', note: '快速晚餐、採買第一晚備品。【停留：1小時15分】', driveTime: '40 分鐘' }, { id: 104, time: '19:00', type: '景點', location: '美國村', note: '找車位並步行至海濱。', driveTime: '' }, { id: 105, time: '20:00 - 20:05', type: '景點', location: '美國村煙火秀', note: '每週六固定施放。', driveTime: '40 分鐘' }, { id: 106, time: '21:10', type: '住宿', location: '星野集團 BEB5 沖繩瀨良垣', note: '入住星野集團 BEB5 沖繩瀨良垣。', driveTime: '' } ] },
+                { date: '5/17 (日)', title: 'Day 2', desc: '水族館與本部燒肉', events: [ { id: 201, time: '08:30', type: '交通', location: '離開飯店', note: '星野集團 BEB5 沖繩瀨良垣', driveTime: '10 分鐘' }, { id: 202, time: '08:40 - 09:15', type: '美食', location: 'Camel (三明治店)', note: '9點前抵達外帶玉子燒三明治。【停留：35分】', driveTime: '50 分鐘' }, { id: 203, time: '10:05 - 11:05', type: '景點', location: '古宇利島', note: '跨海大橋拍照、島上散步。【停留：1小時】', driveTime: '5 分鐘' }, { id: 204, time: '11:10 - 12:10', type: '美食', location: '古宇利島 蝦蝦飯', note: '建議外帶或快速內用。【停留：1小時】', driveTime: '35 分鐘' }, { id: 205, time: '12:45', type: '景點', location: '美麗海水族館 (P7停車場)', note: '抵達 美麗海水族館 (P7停車場)。', driveTime: '' }, { id: 206, time: '13:00', type: '景點', location: '海豚表演', note: '戶外劇場，長輩可坐著觀賞。', driveTime: '' }, { id: 207, time: '15:00', type: '景點', location: '鯨鯊餵食秀', note: '黑潮之海大水槽，單飛成員在此會合。', driveTime: '' }, { id: 208, time: '15:30 - 17:15', type: '購物', location: '美麗海水族館', note: '館內參觀與伴手禮採購。【停留：4.5小時】', driveTime: '15 分鐘' }, { id: 209, time: '17:40', type: '美食', location: '燒肉本部牧場 (本部總店)', note: '晚餐：燒肉本部牧場 (本部總店) ★ 已預約。', driveTime: '50 分鐘' }, { id: 210, time: '20:00', type: '住宿', location: '返回飯店', note: '返回 BEB5 飯店。', driveTime: '' } ] },
                 { date: '5/18 (一)', title: 'Day 3', desc: '鳳梨園與童裝大採購', events: [ { id: 301, time: '08:30', type: '美食', location: '飯店早餐', note: '飯店早餐。', driveTime: '' }, { id: 302, time: '10:00 - 11:30', type: '景點', location: '名護鳳梨園', note: '搭乘鳳梨車遊園，長輩免走路。【停留：1.5小時】', driveTime: '25 分鐘' }, { id: 303, time: '12:00 - 12:40', type: '景點', location: '萬座毛', note: '看象鼻岩拍照。【停留：40分】', driveTime: '15 分鐘' }, { id: 304, time: '12:50 - 14:20', type: '美食', location: '恩納之驛 休憩市場', note: '午餐小吃 (必吃海膽醬扇貝)。【停留：1.5小時】', driveTime: '25 分鐘' }, { id: 305, time: '14:50 - 16:00', type: '景點', location: '美國村 (日間場)', note: '補拍白天美照、逛設計小店。【停留：1小時10分】', driveTime: '15 分鐘' }, { id: 306, time: '16:30 - 18:00', type: '購物', location: 'Birthday 港川店', note: '幼童服飾與用品大採購。【停留：1.5小時】', driveTime: '10 分鐘' }, { id: 307, time: '18:15', type: '住宿', location: '阿拉科喬飯店 (Ala COOJU)', note: '入住 阿拉科喬飯店 (Ala COOJU)。', driveTime: '' }, { id: 308, time: '19:00', type: '美食', location: '濱壽司 (Hamasushi)', note: '晚餐：濱壽司 (Hamasushi)：幼童友善餐廳。', driveTime: '' } ] },
                 { date: '5/19 (二)', title: 'Day 4', desc: '國際通與購物中心大採購', events: [ { id: 401, time: '08:30', type: '美食', location: 'Ala COOJU 飯店', note: 'Ala COOJU 飯店海景早餐。', driveTime: '' }, { id: 402, time: '09:40 - 10:30', type: '購物', location: '沖繩媳婦 (Akebono店)', note: '選物店採購。【停留：50分】', driveTime: '10 分鐘' }, { id: 403, time: '10:40 - 11:50', type: '景點', location: '波上宮', note: '神社參拜與懸崖海景拍照。【停留：1小時10分】', driveTime: '10 分鐘' }, { id: 404, time: '12:00 - 14:30', type: '購物', location: '國際通 & 商店街 (市場本通)', note: '午餐、逛雪鹽與伴手禮。【停留：2.5小時】', driveTime: '15 分鐘' }, { id: 405, time: '15:00 - 18:30', type: '購物', location: 'SAN-A PARCO CITY', note: '【停留 3.5hr】🛍️ 重點：MARKEY\'S 童裝、札幌藥妝、大型超市。', driveTime: '' }, { id: 406, time: '18:30', type: '美食', location: 'PARCO CITY 內餐廳', note: '晚餐：PARCO CITY 內餐廳 (如：敘敘苑燒肉或美食街)。', driveTime: '' } ] },
                 { date: '5/20 (三)', title: 'Day 5', desc: '瀨長島景觀與返程', events: [ { id: 501, time: '09:00', type: '交通', location: '單飛成員出發', note: '單飛成員單獨出發：預約計程車赴機場 (CI121 11:55起飛)。', driveTime: '' }, { id: 502, time: '10:20 - 12:30', type: '景點', location: '瀨長島 Umikaji Terrace', note: '拍照看飛機、幸福鬆餅。【停留：2小時】', driveTime: '10 分鐘' }, { id: 503, time: '13:00 - 13:40', type: '交通', location: 'OTS 臨空豐崎還車', note: 'OTS 臨空豐崎還車 (記得加滿油)。', driveTime: '' }, { id: 504, time: '13:50', type: '航班', location: '機場櫃檯報到', note: '機場櫃檯報到 (JX0871 15:50 起飛)。', driveTime: '' } ] }
@@ -518,9 +518,10 @@
             const addExp = (day) => { if(newExp[day].item && newExp[day].amount) { expenses.value.unshift({ id: Date.now(), day, ...newExp[day] }); newExp[day].item = ''; newExp[day].amount = ''; } };
             const deleteExp = (id) => expenses.value = expenses.value.filter(e => e.id !== id);
             
+            // 關鍵修正：確保模式有切換
             const openEditModal = (idx) => { modalMode.value = 'edit'; editingIdx.value = idx; editingData.value = { ...itinerary.value[activeDay.value].events[idx] }; showModal.value = true; };
             const openAddModal = () => { modalMode.value = 'add'; editingData.value = { id: Date.now(), time:'', type:'景點', location:'', driveTime:'', note:'' }; editingIdx.value = -1; showModal.value = true; };
-            const saveEvent = () => { if(editingIdx.value === -1) itinerary.value[activeDay.value].events.push({ ...editingData.value }); else itinerary.value[activeDay.value].events[editingIdx.value] = { ...editingData.value }; showModal.value = false; };
+            const saveEvent = () => { if(modalMode.value === 'add') itinerary.value[activeDay.value].events.push({ ...editingData.value }); else itinerary.value[activeDay.value].events[editingIdx.value] = { ...editingData.value }; showModal.value = false; };
             const deleteEvent = (idx) => { if(confirm('確定刪除？')) itinerary.value[activeDay.value].events.splice(idx, 1); };
 
             const shoppingList = ref(getSaved('shop', []));
@@ -538,17 +539,16 @@
                     '雜項與工具': [ { text: '大容量摺疊購物袋 (裝藥妝戰利品)', done: false }, { text: '多孔充電頭 / 延長線', done: false }, { text: '指甲剪 / 小剪刀 (嚴禁隨身)', done: false }, { text: '夾鏈袋 / 塑膠袋 (收納濕衣物)', done: false } ]
                 } 
             }));
-            const expenses = ref(getSaved('exp', []));
 
             const newShop = ref({ item: '', location: '', price: '', note: '' });
             const addShopping = () => { if(newShop.value.item) { shoppingList.value.unshift({ done: false, ...newShop.value }); newShop.value = { item: '', location: '', price: '', note: '' }; } };
 
             watch([packing, expenses, rate, itinerary, shoppingList], () => {
-                localStorage.setItem('oki_v16_pack', JSON.stringify(packing.value));
-                localStorage.setItem('oki_v16_exp', JSON.stringify(expenses.value));
-                localStorage.setItem('oki_v16_rate', JSON.stringify(rate.value));
-                localStorage.setItem('oki_v16_itin', JSON.stringify(itinerary.value));
-                localStorage.setItem('oki_v16_shop', JSON.stringify(shoppingList.value));
+                localStorage.setItem('oki_v17_pack', JSON.stringify(packing.value));
+                localStorage.setItem('oki_v17_exp', JSON.stringify(expenses.value));
+                localStorage.setItem('oki_v17_rate', JSON.stringify(rate.value));
+                localStorage.setItem('oki_v17_itin', JSON.stringify(itinerary.value));
+                localStorage.setItem('oki_v17_shop', JSON.stringify(shoppingList.value));
             }, { deep: true });
 
             onMounted(async () => {
@@ -559,7 +559,7 @@
                 } catch (e) {}
             });
 
-            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
+            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, shoppingList, totalJPY, totalTWD, formatNum, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openAddModal, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
         }
     }).component('draggable', window.vuedraggable).mount('#app');
 </script>
