@@ -26,31 +26,49 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         /* 關鍵修正：將 html 與 body 物理釘死，絕對禁止滑動與縮放變形 */
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: -webkit-fill-available;
+            overflow: hidden;
+            background-color: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
             height: var(--app-height, 100dvh);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
             background-color: #e2e8f0;
             font-family: 'Noto Sans TC', sans-serif;
             color: var(--text-main);
             overflow: hidden;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
+            overscroll-behavior: none;
         }
 
         #app-wrapper {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: var(--app-height, 100dvh);
             display: flex;
             justify-content: center;
             align-items: stretch;
             background-color: #e2e8f0;
+            overflow: hidden;
         }
 
         #app {
             width: 100%;
             max-width: 430px;
-            height: 100%; /* 絕對繼承 wrapper 的 100% 高度 */
+            height: var(--app-height, 100dvh);
+            min-height: var(--app-height, 100dvh);
             background-color: var(--bg-light);
             position: relative;
             display: flex;
@@ -59,7 +77,7 @@
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
         }
 
-        @media (min-width: 431px) { #app { height: 90vh; max-height: 932px; border-radius: 24px; top: 5vh; } }
+        @media (min-width: 431px) { #app { height: 90vh; min-height: 90vh; max-height: 932px; border-radius: 24px; top: 5vh; } }
         
         h1, h2, .serif { font-family: 'Playfair Display', 'Noto Sans TC', serif; }
         .app-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); z-index: 40; border-bottom: 1px solid #f1f5f9; padding-top: max(2rem, env(safe-area-inset-top)); }
@@ -83,14 +101,18 @@
         
         /* 關鍵修正：底部導航列物理貼底 */
         .bottom-nav {
-            position: absolute;
-            left: 0; right: 0; bottom: 0;
+            position: fixed;
+            left: 50%;
+            right: auto;
+            bottom: 0;
+            transform: translateX(-50%);
             width: 100%;
+            max-width: 430px;
             background: rgba(255, 255, 255, 0.96);
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
             display: flex; justify-content: space-around;
             padding-top: 10px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom)); /* 完美避開底部 Home 條 */
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             border-top: 1px solid #e2e8f0;
             z-index: 50;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
@@ -99,6 +121,17 @@
         .nav-item.active { color: var(--primary-blue); transform: scale(1.05); }
         .nav-item i { font-size: 22px; line-height: 1; transition: all 0.2s ease; }
         .nav-item.active i { transform: translateY(-2px); }
+
+        @media (min-width: 431px) {
+            .bottom-nav {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                transform: none;
+                max-width: none;
+            }
+        }
 
         .ticket-card { background: white; border-radius: 16px; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 20px; }
         .ticket-cutout { border-top: 2px dashed #cbd5e1; position: relative; }
@@ -369,10 +402,19 @@
 
 <script>
     // iPhone Safari 100vh 修正：避免底部網址列造成畫面高度計算錯誤
-    const setAppHeight = () => document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    // iPhone 加入主畫面後，100vh / 100dvh 有時會把底部 Home Bar 區域算錯
+    // 用 visualViewport 優先取得實際可視高度，讓底部導覽列真正貼齊螢幕底部
+    const setAppHeight = () => {
+        const h = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight;
+        document.documentElement.style.setProperty('--app-height', `${h}px`);
+    };
     setAppHeight();
     window.addEventListener('resize', setAppHeight);
-    window.addEventListener('orientationchange', setAppHeight);
+    window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppHeight);
+        window.visualViewport.addEventListener('scroll', setAppHeight);
+    }
 
     // PWA 動態注入 Manifest
     const manifest = {
@@ -390,7 +432,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.8'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.9-pwa-bottom'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
