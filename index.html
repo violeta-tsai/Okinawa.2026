@@ -307,10 +307,15 @@
                         <div v-for="(item, i) in packing.hand" :key="i" class="flex items-start gap-3">
                             <input type="checkbox" v-model="item.done" class="w-5 h-5 accent-sky-500 flex-shrink-0 mt-1">
                             <input v-model="item.text" class="flex-grow min-w-0 bg-transparent text-sm outline-none border-b border-transparent focus:border-sky-200 py-1 transition leading-relaxed" :class="{'line-through text-slate-400 opacity-60': item.done}">
-                            <button @click="packing.hand.splice(i,1)" class="text-slate-300 hover:text-red-500 p-1 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>
+                            <button v-if="packingDeleteMode" @click="packing.hand.splice(i,1)" class="text-red-400 hover:text-red-600 p-1 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
-                    <button @click="packing.hand.push({text:'', done:false})" class="w-full mt-4 py-3 border border-dashed border-sky-200 text-sky-500 rounded-xl font-bold text-sm">+ 新增隨身物品</button>
+                    <div class="flex gap-2 mt-4">
+                        <button @click="packing.hand.push({text:'', done:false})" class="w-3/4 py-3 border border-dashed border-sky-200 text-sky-500 rounded-xl font-bold text-sm">+ 新增隨身物品</button>
+                        <button @click="packingDeleteMode = !packingDeleteMode" class="w-1/4 flex items-center justify-center rounded-xl border transition" :class="packingDeleteMode ? 'bg-red-50 text-red-500 border-red-200' : 'bg-slate-50 text-slate-400 border-slate-200'">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
@@ -322,10 +327,15 @@
                             <div v-for="(item, i) in cat" :key="i" class="flex items-start gap-3">
                                 <input type="checkbox" v-model="item.done" class="w-5 h-5 accent-indigo-500 flex-shrink-0 mt-1">
                                 <input v-model="item.text" class="flex-grow min-w-0 bg-transparent text-sm outline-none border-b border-transparent focus:border-indigo-200 py-1 transition leading-relaxed" :class="{'line-through text-slate-400 opacity-60': item.done}">
-                                <button @click="cat.splice(i,1)" class="text-slate-300 hover:text-red-500 p-1 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>
+                                <button v-if="packingDeleteMode" @click="cat.splice(i,1)" class="text-red-400 hover:text-red-600 p-1 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
-                        <button @click="cat.push({text:'', done:false})" class="w-full mt-3 py-2 border border-dashed border-indigo-200 text-indigo-500 rounded-xl font-bold text-xs">+ 新增 {{ catName }} 物品</button>
+                        <div class="flex gap-2 mt-3">
+                            <button @click="cat.push({text:'', done:false})" class="w-3/4 py-2 border border-dashed border-indigo-200 text-indigo-500 rounded-xl font-bold text-xs">+ 新增 {{ catName }} 物品</button>
+                            <button @click="packingDeleteMode = !packingDeleteMode" class="w-1/4 flex items-center justify-center rounded-xl border transition" :class="packingDeleteMode ? 'bg-red-50 text-red-500 border-red-200' : 'bg-slate-50 text-slate-400 border-slate-200'">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -442,7 +452,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.13-full-notes-no-add'; // 更新版本以載入新版行程
+    const APP_VERSION = 'v1.0.14-packing-delete-mode'; // 更新版本以載入新版行程
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     createApp({
@@ -459,6 +469,7 @@
             const weather = ref(null);
             const rate = ref(0.215);
             const expandedDay = ref(1);
+            const packingDeleteMode = ref(false);
             const showModal = ref(false);
             const modalMode = ref('add');
             const editingIdx = ref(-1);
@@ -915,7 +926,7 @@
                 } catch (e) {}
             });
 
-            return { tab, activeDay, weather, rate, expandedDay, packing, expenses, itinerary, currentEvents, shoppingList, totalJPY, totalTWD, formatNum, resetApp, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
+            return { tab, activeDay, weather, rate, expandedDay, packingDeleteMode, packing, expenses, itinerary, currentEvents, shoppingList, totalJPY, totalTWD, formatNum, resetApp, toggleDay, getExpenses, getDayTotalJPY, newExp, addExp, deleteExp, newShop, addShopping, openMap, showModal, modalMode, editingData, openEditModal, closeModal:()=>showModal.value=false, saveEvent, deleteEvent };
         }
     }).mount('#app');
 </script>
