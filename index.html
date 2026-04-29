@@ -26,15 +26,14 @@
             height: 100%;
             min-height: 100%;
             min-height: -webkit-fill-available;
+            background: #e2e8f0;
         }
         :root { --primary-blue: #0284c7; --bg-light: #f8fafc; --text-main: #0f172a; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background-color: #e2e8f0;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 100%;
             min-height: 100vh;
             min-height: 100dvh;
             min-height: -webkit-fill-available;
@@ -42,12 +41,22 @@
             color: var(--text-main);
             overflow: hidden;
         }
-        #app {
+        #app-wrapper {
             width: 100%;
-            max-width: 430px;
             height: 100vh;
             height: 100dvh;
             min-height: -webkit-fill-available;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            background-color: #e2e8f0;
+            overflow: hidden;
+        }
+        #app {
+            width: 100%;
+            max-width: 430px;
+            height: 100%;
+            min-height: 100%;
             background-color: var(--bg-light);
             position: relative;
             display: flex;
@@ -74,6 +83,8 @@
         .drive-input { background: transparent; border: none; border-bottom: 1px dashed #bae6fd; color: var(--primary-blue); font-size: 12px; font-weight: 600; outline: none; flex: 1; min-width: 0; padding: 2px 4px; }
         .bottom-nav {
             position: absolute;
+            left: 0;
+            right: 0;
             bottom: 0;
             width: 100%;
             height: calc(86px + env(safe-area-inset-bottom));
@@ -128,6 +139,7 @@
 </head>
 <body>
 
+<div id="app-wrapper">
 <div id="app" v-cloak>
     <header class="app-header px-6 pb-4">
         <div class="flex justify-between items-center">
@@ -347,6 +359,7 @@
         <div @click="tab = 'shopping'" class="nav-item" :class="{'active': tab === 'shopping'}"><i class="fa-solid fa-bag-shopping"></i><span>購物</span></div>
     </nav>
 </div>
+</div>
 
 <script>
     // PWA 動態注入 Manifest
@@ -365,7 +378,7 @@
     };
     document.getElementById('pwa-manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
 
-    const APP_VERSION = 'v1.0.6'; // 更新版本以清除快取
+    const APP_VERSION = 'v1.0.7'; // 更新版本以清除快取
     const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
     const DraggableFallback = { props: ['modelValue'], template: '<div><template v-for="(element, index) in modelValue" :key="index"><slot name="item" :element="element" :index="index"></slot></template></div>' };
@@ -391,7 +404,7 @@
             const newExp = reactive({ 1: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 2: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 3: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 4: { item:'', amount:'', payment:'信用卡', currency:'日幣' }, 5: { item:'', amount:'', payment:'信用卡', currency:'日幣' } });
 
             const getSaved = (key, def) => {
-                const raw = localStorage.getItem('oki_v24_' + key);
+                const raw = localStorage.getItem('oki_v25_' + key);
                 if(!raw) return def;
                 try {
                     const parsed = JSON.parse(raw);
@@ -497,11 +510,11 @@
 
             watch([packing, expenses, rate, itinerary, shoppingList], () => {
                 try {
-                    localStorage.setItem('oki_v24_pack', JSON.stringify(packing.value));
-                    localStorage.setItem('oki_v24_exp', JSON.stringify(expenses.value));
-                    localStorage.setItem('oki_v24_rate', JSON.stringify(rate.value));
-                    localStorage.setItem('oki_v24_itin', JSON.stringify(itinerary.value));
-                    localStorage.setItem('oki_v24_shop', JSON.stringify(shoppingList.value));
+                    localStorage.setItem('oki_v25_pack', JSON.stringify(packing.value));
+                    localStorage.setItem('oki_v25_exp', JSON.stringify(expenses.value));
+                    localStorage.setItem('oki_v25_rate', JSON.stringify(rate.value));
+                    localStorage.setItem('oki_v25_itin', JSON.stringify(itinerary.value));
+                    localStorage.setItem('oki_v25_shop', JSON.stringify(shoppingList.value));
                 } catch (e) {}
             }, { deep: true });
 
